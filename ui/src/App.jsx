@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Flex, Box, Spinner } from '@radix-ui/themes'
 import api from './api'
+import ErrorBoundary from './components/ErrorBoundary'
 
 // Pages (to be created)
 import Dashboard from './pages/Dashboard'
@@ -17,14 +18,23 @@ function App() {
   const checkUser = async () => {
     try {
       const response = await api.get('/user')
-      setUser(response.data)
-      setNeedsSetup(false)
-    } catch (error) {
-      if (error.response?.status === 401) {
+      const userData = response?.data
+      if (userData && typeof userData === 'object') {
+        setUser(userData)
+        setNeedsSetup(false)
+      } else {
         setUser(null)
-      } else if (error.response?.status === 404) {
+      }
+    } catch (error) {
+      console.error('[App] User check error:', error?.response?.status)
+      if (error?.response?.status === 401) {
+        setUser(null)
+      } else if (error?.response?.status === 404) {
         // This might happen if common routes aren't set up, 
         // but our middleware should handle the setup redirect.
+      } else if (error?.response?.status === 0) {
+        // Network error - show loading, not blank screen
+        console.error('[App] Network error checking user')
       }
     } finally {
       setLoading(false)
@@ -44,14 +54,16 @@ function App() {
   }
 
   return (
-    <Routes>
-      <Route path="/login" element={user ? <Navigate to="/" /> : <Login onLogin={checkUser} />} />
-      <Route path="/setup" element={<Setup onSetup={checkUser} />} />
-      <Route 
-        path="/*" 
-        element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} 
-      />
-    </Routes>
+    <ErrorBoundary>
+      <Routes>
+        <Route path="/login" element={user ? <Navigate to="/" /> : <Login onLogin={checkUser} />} />
+        <Route path="/setup" element={<Setup onSetup={checkUser} />} />
+        <Route 
+          path="/*" 
+          element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} 
+        />
+      </Routes>
+    </ErrorBoundary>
   )
 }
 

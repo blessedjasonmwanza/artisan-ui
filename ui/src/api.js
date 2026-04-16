@@ -17,4 +17,36 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+// Response interceptor to handle errors and validate data
+api.interceptors.response.use(
+  (response) => {
+    // Ensure response.data exists and is properly formatted
+    if (!response.data) {
+      response.data = {}
+    }
+    return response
+  },
+  (error) => {
+    // Handle network errors and invalid responses
+    if (!error.response) {
+      console.error('[ArtisanUI API] Network error:', error.message)
+      return Promise.reject({
+        response: {
+          status: 0,
+          data: { message: 'Network error: ' + error.message }
+        }
+      })
+    }
+    
+    // Log API errors for debugging
+    console.error('[ArtisanUI API] Error:', {
+      status: error.response?.status,
+      message: error.response?.data?.message,
+      url: error.config?.url
+    })
+    
+    return Promise.reject(error)
+  }
+)
+
 export default api

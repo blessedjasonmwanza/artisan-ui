@@ -38,7 +38,11 @@ The package will automatically:
 ---
 
 > [!TIP]
-> **Manual Installation**: If you prefer to handle things manually, you can run `php artisan artisan-ui:install` at any time.
+> **Manual Installation**: If you prefer to handle things manually, you can run;
+>  `php artisan artisan-ui:install`
+> and 
+> `php artisan vendor:publish --tag=artisan-ui-assets --force` 
+> at any time.
 
 ---
 

@@ -67,9 +67,12 @@ class CommandRegistry
         
         $arguments = [];
         foreach ($definition->getArguments() as $arg) {
+            if (!$arg) {
+                continue;
+            }
             $arguments[] = [
-                'name' => $arg->getName(),
-                'description' => $arg->getDescription(),
+                'name' => $arg->getName() ?? 'unnamed',
+                'description' => $arg->getDescription() ?? '',
                 'required' => $arg->isRequired(),
                 'default' => $arg->getDefault(),
             ];
@@ -77,10 +80,13 @@ class CommandRegistry
 
         $options = [];
         foreach ($definition->getOptions() as $opt) {
+            if (!$opt) {
+                continue;
+            }
             $options[] = [
-                'name' => $opt->getName(),
-                'shortcut' => $opt->getShortcut(),
-                'description' => $opt->getDescription(),
+                'name' => $opt->getName() ?? 'unnamed',
+                'shortcut' => $opt->getShortcut() ?? null,
+                'description' => $opt->getDescription() ?? '',
                 'accept_value' => $opt->acceptValue(),
                 'required' => $opt->isValueRequired(),
                 'default' => $opt->getDefault(),

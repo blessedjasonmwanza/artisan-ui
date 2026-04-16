@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Box, Flex, Text, Heading, Button, Card, TextField, Switch, Badge, Callout, ScrollArea, Grid } from '@radix-ui/themes'
 import { PlayIcon, InfoCircledIcon, CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons'
 import api from '../api'
+import { toArray } from '../utils/dataValidation'
 
 function CommandExecution({ command }) {
   const [params, setParams] = useState({})
@@ -25,14 +26,20 @@ function CommandExecution({ command }) {
     setLog(null)
     try {
       const response = await api.post('/run', {
-        command: command.name,
+        command: command?.name,
         parameters: params
       })
       
-      // Start polling for this log
-      pollLog(response.data.log_id)
+      const logId = response?.data?.log_id
+      if (logId) {
+        pollLog(logId)
+      } else {
+        setError('Invalid response: missing log_id')
+        setExecuting(false)
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Execution failed')
+      console.error('[CommandExecution] Run error:', err)
+      setError(err?.response?.data?.message || err?.message || 'Execution failed')
       setExecuting(false)
     }
   }
@@ -40,14 +47,22 @@ function CommandExecution({ command }) {
   const pollLog = async (id) => {
     try {
       const response = await api.get(`/logs/${id}`)
-      setLog(response.data)
+      const logData = response?.data
       
-      if (response.data.status === 'running') {
-        setTimeout(() => pollLog(id), 1000)
+      if (logData && typeof logData === 'object') {
+        setLog(logData)
+        
+        if (logData.status === 'running') {
+          setTimeout(() => pollLog(id), 1000)
+        } else {
+          setExecuting(false)
+        }
       } else {
+        setError('Invalid log response format')
         setExecuting(false)
       }
     } catch (err) {
+      console.error('[CommandExecution] Poll error:', err)
       setExecuting(false)
     }
   }
@@ -61,26 +76,36 @@ function CommandExecution({ command }) {
     )
   }
 
+  const args = toArray(command?.arguments)
+  const opts = toArray(command?.options)
+
   return (
     <Box>
       <Flex justify="between" align="start" mb="5">
         <Box>
-          <Heading size="7" mb="1">{command.name}</Heading>
-          <Text color="gray" size="3">{command.description}</Text>
+          <Heading size="7" mb="1">{command?.name || 'Unknown Command'}</Heading>
+          <Text color="gray" size="3">{command?.description || 'No description available'}</Text>
         </Box>
-        <Button size="3" onClick={runCommand} loading={executing} disabled={executing}>
+        <Button size="3" onClick={runCommand} loading={executing} disabled={executing || !command?.name}>
           <PlayIcon /> Run Command
         </Button>
       </Flex>
 
+      {error && (
+        <Callout.Root color="red" mb="4">
+          <Callout.Icon>!</Callout.Icon>
+          <Callout.Text>{error}</Callout.Text>
+        </Callout.Root>
+      )}
+
       <Flex gap="5">
         <Flex direction="column" gap="4" style={{ flex: 1 }}>
           {/* Arguments */}
-          {Array.isArray(command?.arguments) && command.arguments.length > 0 && (
+          {args.length > 0 && (
             <Card variant="surface">
               <Heading size="3" mb="3">Arguments</Heading>
               <Flex direction="column" gap="3">
-                {command.arguments.map(arg => (
+                {args.map(arg => (
                   <Box key={arg?.name || Math.random()}>
                     <Flex justify="between" mb="1">
                       <Text size="2" weight="bold">{arg?.name || 'Unnamed'}</Text>
@@ -89,7 +114,7 @@ function CommandExecution({ command }) {
                     <TextField.Root 
                       placeholder={arg?.default || 'Enter value...'}
                       value={params[arg?.name] || ''}
-                      onChange={(e) => handleParamChange(arg.name, e.target.value)}
+                      onChange={(e) => handleParamChange(arg?.name, e.target.value)}
                     />
                     <Text size="1" color="gray" mt="1" as="div">{arg?.description || ''}</Text>
                   </Box>
@@ -99,11 +124,11 @@ function CommandExecution({ command }) {
           )}
 
           {/* Options */}
-          {Array.isArray(command?.options) && command.options.length > 0 && (
+          {opts.length > 0 && (
             <Card variant="surface">
               <Heading size="3" mb="3">Options</Heading>
               <Flex direction="column" gap="4">
-                {command.options.map(opt => (
+                {opts.map(opt => (
                   <Box key={opt?.name || Math.random()}>
                     <Flex justify="between" align="center" mb={opt?.is_flag ? "0" : "1"}>
                       <Box>
@@ -112,15 +137,15 @@ function CommandExecution({ command }) {
                       </Box>
                       {opt?.is_flag ? (
                         <Switch 
-                          checked={!!params['--' + opt.name]}
-                          onCheckedChange={(val) => handleParamChange('--' + opt.name, val)}
+                          checked={!!params['--' + opt?.name]}
+                          onCheckedChange={(val) => handleParamChange('--' + opt?.name, val)}
                         />
                       ) : (
                         <TextField.Root 
                           style={{ width: 150 }}
                           placeholder={opt?.default || 'Value...'}
-                          value={params['--' + opt.name] || ''}
-                          onChange={(e) => handleParamChange('--' + opt.name, e.target.value)}
+                          value={params['--' + opt?.name] || ''}
+                          onChange={(e) => handleParamChange('--' + opt?.name, e.target.value)}
                         />
                       )}
                     </Flex>
@@ -137,8 +162,8 @@ function CommandExecution({ command }) {
             <Flex p="2" justify="between" align="center" style={{ borderBottom: '1px solid #333' }}>
               <Text size="2" weight="medium" style={{ opacity: 0.7 }}>Output Console</Text>
               {log && (
-                <Badge color={log.status === 'success' ? 'green' : (log.status === 'failed' ? 'red' : 'blue')}>
-                  {log.status.toUpperCase()}
+                <Badge color={log?.status === 'success' ? 'green' : (log?.status === 'failed' ? 'red' : 'blue')}>
+                  {log?.status?.toUpperCase?.() || 'UNKNOWN'}
                 </Badge>
               )}
             </Flex>

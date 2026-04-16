@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Box, Flex, ScrollArea, Heading, Text, Badge, Card, IconButton, Tooltip, Avatar, DropdownMenu, Button, SegmentedControl, TextField, Table } from '@radix-ui/themes'
 import { MagnifyingGlassIcon, PlayIcon, ListBulletIcon, CounterClockwiseClockIcon, ExitIcon, ChevronRightIcon, ExternalLinkIcon, CubeIcon } from '@radix-ui/react-icons'
 import api from '../api'
+import { toArray } from '../utils/dataValidation'
 import CommandSidebar from '../components/CommandSidebar'
 import CommandExecution from '../components/CommandExecution'
 import LogViewer from '../components/LogViewer'
@@ -11,13 +12,27 @@ function Dashboard({ user }) {
   const [selectedCommand, setSelectedCommand] = useState(null)
   const [view, setView] = useState('execute') // 'execute' or 'logs'
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   const fetchCommands = async () => {
+    setError(null)
     try {
       const response = await api.get('/commands')
-      setCommands(Array.isArray(response.data) ? response.data : [])
+      const data = toArray(response.data)
+      
+      // Validate that all items are valid commands
+      const validCommands = data.filter(cmd => 
+        cmd && typeof cmd === 'object' && cmd.name && cmd.description
+      )
+      
+      setCommands(validCommands)
+      
+      if (validCommands.length === 0) {
+        console.warn('[Dashboard] No valid commands returned from API')
+      }
     } catch (err) {
-      console.error('Failed to fetch commands:', err)
+      console.error('[Dashboard] Failed to fetch commands:', err)
+      setError(err?.response?.data?.message || 'Failed to load commands')
       setCommands([])
     } finally {
       setLoading(false)
@@ -29,8 +44,14 @@ function Dashboard({ user }) {
   }, [])
 
   const handleLogout = async () => {
-    await api.post('/logout')
-    window.location.reload()
+    try {
+      await api.post('/logout')
+      window.location.reload()
+    } catch (err) {
+      console.error('[Dashboard] Logout error:', err)
+      // Force logout on error
+      window.location.reload()
+    }
   }
 
   return (
@@ -74,11 +95,18 @@ function Dashboard({ user }) {
         </Flex>
       </Flex>
 
+      {/* Error banner */}
+      {error && (
+        <Box p="3" style={{ background: 'var(--red-3)', borderBottom: '1px solid var(--red-5)' }}>
+          <Text size="2" color="red" weight="medium">{error}</Text>
+        </Box>
+      )}
+
       {/* Main Content */}
       <Flex style={{ flex: 1, overflow: 'hidden' }}>
         <Box width="300px" style={{ borderRight: '1px solid var(--gray-4)', background: 'var(--gray-1)', flexShrink: 0 }}>
           <CommandSidebar 
-            commands={commands || []} 
+            commands={commands} 
             loading={loading}
             selectedCommand={selectedCommand}
             onSelect={(cmd) => {

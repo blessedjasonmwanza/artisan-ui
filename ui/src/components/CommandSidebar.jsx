@@ -1,17 +1,20 @@
 import React, { useState } from 'react'
 import { Box, Flex, TextField, ScrollArea, Text, Badge, Card } from '@radix-ui/themes'
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons'
+import { safeFilter, toArray } from '../utils/dataValidation'
 
 function CommandSidebar({ commands, loading, selectedCommand, onSelect }) {
   const [search, setSearch] = useState('')
 
-  const filtered = (Array.isArray(commands) ? commands : []).filter(cmd => 
-    cmd?.name?.toLowerCase().includes(search.toLowerCase()) ||
-    cmd?.description?.toLowerCase().includes(search.toLowerCase())
+  const cmds = toArray(commands)
+  
+  const filtered = safeFilter(cmds, cmd => 
+    (cmd?.name?.toLowerCase?.() || '').includes(search.toLowerCase()) ||
+    (cmd?.description?.toLowerCase?.() || '').includes(search.toLowerCase())
   )
 
-  const groups = (Array.isArray(filtered) ? filtered : []).reduce((acc, cmd) => {
-    const namespace = cmd?.name?.includes(':') ? cmd.name.split(':')[0] : 'general'
+  const groups = filtered.reduce((acc, cmd) => {
+    const namespace = cmd?.name?.includes?.(':') ? cmd.name.split(':')[0] : 'general'
     if (!acc[namespace]) acc[namespace] = []
     acc[namespace].push(cmd)
     return acc
@@ -39,7 +42,7 @@ function CommandSidebar({ commands, loading, selectedCommand, onSelect }) {
                 {namespace}
               </Text>
               <Flex direction="column" gap="1">
-                {(cmds || []).map(cmd => (
+                {toArray(cmds).map(cmd => (
                   <Box
                     key={cmd?.name || Math.random()}
                     p="2"
