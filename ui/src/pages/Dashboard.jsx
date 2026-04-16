@@ -58,7 +58,7 @@ function Dashboard({ user }) {
           <DropdownMenu.Root>
             <DropdownMenu.Trigger>
               <Flex align="center" gap="2" style={{ cursor: 'pointer' }}>
-                <Avatar size="2" fallback={user.name[0]} radius="full" color="indigo" />
+                <Avatar size="2" fallback={user?.name?.[0] || '?'} radius="full" color="indigo" />
                 <Text size="2" weight="medium">{user.name}</Text>
               </Flex>
             </DropdownMenu.Trigger>
