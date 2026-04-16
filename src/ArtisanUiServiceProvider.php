@@ -4,6 +4,10 @@ namespace Blessedjasonmwanza\ArtisanUi;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class ArtisanUiServiceProvider extends ServiceProvider
 {
@@ -35,6 +39,7 @@ class ArtisanUiServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
         $this->registerRoutes();
+        $this->handleAutoInstall();
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
@@ -44,6 +49,42 @@ class ArtisanUiServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__ . '/../resources/dist' => public_path('vendor/artisan-ui'),
             ], 'artisan-ui-assets');
+        }
+    }
+
+    /**
+     * Handle automatic installation if enabled.
+     *
+     * @return void
+     */
+    protected function handleAutoInstall()
+    {
+        if (!config('artisan-ui.auto_install', true) || $this->app->runningInConsole()) {
+            return;
+        }
+
+        // Only run when accessing Artisan UI routes to avoid overhead
+        if (!request()->is(config('artisan-ui.path') . '*')) {
+            return;
+        }
+
+        try {
+            // Check for assets
+            if (!file_exists(public_path('vendor/artisan-ui/index.js'))) {
+                Artisan::call('vendor:publish', [
+                    '--tag' => 'artisan-ui-assets',
+                    '--force' => true,
+                ]);
+            }
+
+            // Check for migrations
+            if (!Schema::hasTable('artisan_ui_users')) {
+                Artisan::call('migrate');
+            }
+        } catch (Throwable $e) {
+            Log::warning('Artisan UI Auto-installation failed: ' . $e->getMessage(), [
+                'exception' => $e
+            ]);
         }
     }
 

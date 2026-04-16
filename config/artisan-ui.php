@@ -44,7 +44,14 @@ return [
     | with a dedicated users table.
     |
     */
-    'auth' => [
-        'enabled' => true,
-    ],
+    /*
+    |--------------------------------------------------------------------------
+    | Auto-Installation
+    |--------------------------------------------------------------------------
+    |
+    | If enabled, the package will attempt to automatically run migrations
+    | and publish assets if they are missing when the UI is first accessed.
+    |
+    */
+    'auto_install' => env('ARTISAN_UI_AUTO_INSTALL', true),
 ];
