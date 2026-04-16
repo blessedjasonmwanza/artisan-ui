@@ -11,9 +11,29 @@ import Setup from './pages/Setup'
 
 function App() {
   const [user, setUser] = useState(null)
+  const [setupRequired, setSetupRequired] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [needsSetup, setNeedsSetup] = useState(false)
   const location = useLocation()
+
+  const checkSetupStatus = async () => {
+    try {
+      const setupResponse = await api.get('/setup-status')
+      const { setup_required } = setupResponse?.data || {}
+      
+      if (setup_required) {
+        setSetupRequired(true)
+        setLoading(false)
+        return
+      }
+
+      // Setup is complete, check user
+      await checkUser()
+    } catch (error) {
+      console.error('[App] Setup status check error:', error?.response?.status)
+      // If we can't check setup status, try to check user
+      await checkUser()
+    }
+  }
 
   const checkUser = async () => {
     try {
@@ -21,7 +41,7 @@ function App() {
       const userData = response?.data
       if (userData && typeof userData === 'object') {
         setUser(userData)
-        setNeedsSetup(false)
+        setSetupRequired(false)
       } else {
         setUser(null)
       }
@@ -29,11 +49,7 @@ function App() {
       console.error('[App] User check error:', error?.response?.status)
       if (error?.response?.status === 401) {
         setUser(null)
-      } else if (error?.response?.status === 404) {
-        // This might happen if common routes aren't set up, 
-        // but our middleware should handle the setup redirect.
       } else if (error?.response?.status === 0) {
-        // Network error - show loading, not blank screen
         console.error('[App] Network error checking user')
       }
     } finally {
@@ -42,7 +58,7 @@ function App() {
   }
 
   useEffect(() => {
-    checkUser()
+    checkSetupStatus()
   }, [location.pathname])
 
   if (loading) {
@@ -56,11 +72,21 @@ function App() {
   return (
     <ErrorBoundary>
       <Routes>
-        <Route path="/login" element={user ? <Navigate to="/" /> : <Login onLogin={checkUser} />} />
-        <Route path="/setup" element={<Setup onSetup={checkUser} />} />
+        <Route 
+          path="/setup" 
+          element={setupRequired ? <Setup onSetup={checkSetupStatus} /> : <Navigate to="/" />} 
+        />
+        <Route 
+          path="/login" 
+          element={!setupRequired && !user ? <Login onLogin={checkSetupStatus} /> : <Navigate to="/" />} 
+        />
         <Route 
           path="/*" 
-          element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} 
+          element={
+            setupRequired ? <Navigate to="/setup" /> : 
+            user ? <Dashboard user={user} /> : 
+            <Navigate to="/login" />
+          } 
         />
       </Routes>
     </ErrorBoundary>

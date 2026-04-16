@@ -44,6 +44,10 @@ return [
     | with a dedicated users table.
     |
     */
+    'auth' => [
+        'enabled' => env('ARTISAN_UI_AUTH_ENABLED', true),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Auto-Installation

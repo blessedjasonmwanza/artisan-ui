@@ -75,4 +75,14 @@ class AuthController extends Controller
 
         return response()->json(ArtisanUiUser::find($userId));
     }
-}
+
+    public function setupStatus()
+    {
+        if (!config('artisan-ui.auth.enabled')) {
+            return response()->json(['setup_required' => false, 'user_exists' => true]);
+        }
+
+        $userExists = ArtisanUiUser::count() > 0;
+
+        return response()->json(['setup_required' => !$userExists, 'user_exists' => $userExists]);
+    }

@@ -4,6 +4,7 @@ namespace Blessedjasonmwanza\ArtisanUi\Http\Controllers;
 
 use Blessedjasonmwanza\ArtisanUi\Services\CommandRegistry;
 use Blessedjasonmwanza\ArtisanUi\Services\CommandRunner;
+use Blessedjasonmwanza\ArtisanUi\Services\CommandDebugger;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
@@ -36,6 +37,20 @@ class CommandController extends Controller
             ]);
             
             return response()->json([], 500);
+        }
+    }
+
+    public function debug()
+    {
+        try {
+            $debugInfo = CommandDebugger::getDebugInfo();
+            return response()->json($debugInfo);
+        } catch (\Throwable $e) {
+            \Log::error('CommandController::debug error', [
+                'message' => $e->getMessage()
+            ]);
+            
+            return response()->json(['error' => 'Failed to get debug info'], 500);
         }
     }
 
