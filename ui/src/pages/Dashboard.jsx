@@ -61,8 +61,8 @@ function Dashboard({ user }) {
           <DropdownMenu.Root>
             <DropdownMenu.Trigger>
               <Flex align="center" gap="2" style={{ cursor: 'pointer' }}>
-                <Avatar size="2" fallback={user?.name?.[0] || '?'} radius="full" color="indigo" />
-                <Text size="2" weight="medium">{user?.name || 'User'}</Text>
+                <Avatar size="2" src={user?.avatar} fallback={user?.name?.[0]?.toUpperCase() || 'U'} radius="full" color="indigo" />
+                <Text size="2" weight="medium">{user?.name || user?.email || 'User'}</Text>
               </Flex>
             </DropdownMenu.Trigger>
             <DropdownMenu.Content size="2">

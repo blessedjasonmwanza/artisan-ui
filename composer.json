@@ -3,6 +3,7 @@
     "description": "GUI package for managing and monitoring Laravel artisan commands and their output",
     "type": "library",
     "require": {
+        "php": "^8.2",
         "laravel/framework": ">=10.0",
         "symfony/process": ">=6.0",
         "illuminate/support": ">=10.0"

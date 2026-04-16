@@ -43,7 +43,7 @@ class CommandRegistry
      * @param string $name
      * @return array|null
      */
-    public function getCommand(string $name): ?array
+    public function getCommand(?string $name): ?array
     {
         $allCommands = Artisan::all();
 
@@ -90,7 +90,7 @@ class CommandRegistry
 
         return [
             'name' => $name,
-            'description' => $command->getDescription(),
+            'description' => $command->getDescription() ?: 'No description available.',
             'arguments' => $arguments,
             'options' => $options,
         ];

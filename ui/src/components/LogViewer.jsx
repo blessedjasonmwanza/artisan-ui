@@ -13,7 +13,12 @@ function LogViewer() {
     setLoading(true)
     try {
       const response = await api.get('/logs')
-      setLogs(response.data.data)
+      // Handle both paginated and non-paginated responses gracefully
+      const data = response.data?.data || response.data
+      setLogs(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error('Failed to fetch logs:', err)
+      setLogs([])
     } finally {
       setLoading(false)
     }

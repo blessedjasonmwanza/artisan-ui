@@ -74,13 +74,22 @@ class ArtisanUiServiceProvider extends ServiceProvider
 
             // Force publish if assets are missing OR if the package assets are newer than the public ones
             if (!file_exists($publicPath) || (file_exists($sourcePath) && filemtime($sourcePath) > filemtime($publicPath))) {
+                // Check if directory exists, if not create it
+                if (!file_exists(public_path('vendor/artisan-ui'))) {
+                    mkdir(public_path('vendor/artisan-ui'), 0755, true);
+                }
+
                 Artisan::call('vendor:publish', [
                     '--tag' => 'artisan-ui-assets',
                     '--force' => true,
                 ]);
                 
                 // Refresh clear the stat cache to avoid continuous publishing
-                clearstatcache(true, $publicPath);
+                if (file_exists($publicPath)) {
+                    clearstatcache(true, $publicPath);
+                    // Ensure the public path has a fresh timestamp
+                    touch($publicPath);
+                }
             }
 
             // Check for migrations
