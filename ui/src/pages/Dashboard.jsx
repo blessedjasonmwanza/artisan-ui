@@ -15,7 +15,10 @@ function Dashboard({ user }) {
   const fetchCommands = async () => {
     try {
       const response = await api.get('/commands')
-      setCommands(response.data)
+      setCommands(Array.isArray(response.data) ? response.data : [])
+    } catch (err) {
+      console.error('Failed to fetch commands:', err)
+      setCommands([])
     } finally {
       setLoading(false)
     }

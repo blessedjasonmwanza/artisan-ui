@@ -5,7 +5,7 @@ import { MagnifyingGlassIcon } from '@radix-ui/react-icons'
 function CommandSidebar({ commands, loading, selectedCommand, onSelect }) {
   const [search, setSearch] = useState('')
 
-  const filtered = (commands || []).filter(cmd => 
+  const filtered = (Array.isArray(commands) ? commands : []).filter(cmd => 
     cmd?.name?.toLowerCase().includes(search.toLowerCase()) ||
     cmd?.description?.toLowerCase().includes(search.toLowerCase())
   )
