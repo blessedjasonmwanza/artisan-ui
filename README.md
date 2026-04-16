@@ -19,7 +19,7 @@ Artisan UI is a production-grade Laravel package that provides a secure, modern 
 
 ## Installation
 
-Getting started is simple. Artisan UI features **Zero-Config Installation**—it handles everything for you the first time you visit the dashboard.
+Getting started is simple. Artisan UI features **Zero-Config Installation**—it handles everything automatically.
 
 ### 1. Install via Composer
 Run the following command in your terminal:
@@ -30,19 +30,27 @@ composer require blessedjasonmwanza/artisan-ui
 ### 2. Access the Dashboard
 Navigate to `/artisan-ui` in your browser. 
 
-The package will automatically:
-- Publish required assets and configuration.
-- Run database migrations.
-- Redirect you to the setup page to create your first administrator account.
+The package will automatically handle:
+- Publishing assets and configuration files.
+- Running database migrations.
+- Setting up your first administrator account on the setup page.
+
+**No manual commands needed!** Everything runs on first access after installation or update.
 
 ---
 
 > [!TIP]
-> **Manual Installation**: If you prefer to handle things manually, you can run;
->  `php artisan artisan-ui:install`
-> and 
-> `php artisan vendor:publish --tag=artisan-ui-assets --force` 
-> at any time.
+> **Manual Installation**: If you ever need to manually trigger installation, use:
+>
+> ```bash
+> php artisan artisan-ui:install
+> ```
+> 
+> Or publish assets individually:
+> ```bash
+> php artisan vendor:publish --tag=artisan-ui-assets --force
+> php artisan vendor:publish --tag=artisan-ui-config --force
+> ```
 
 ---
 

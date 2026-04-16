@@ -41,7 +41,10 @@ class ArtisanUiServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
         $this->registerRoutes();
-        $this->handleAutoInstall();
+        
+        // Auto-publish assets and run migrations
+        $this->ensureAssetsPublished();
+        $this->ensureMigrationsRun();
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
@@ -55,57 +58,82 @@ class ArtisanUiServiceProvider extends ServiceProvider
     }
 
     /**
-     * Handle automatic installation if enabled.
+     * Ensure assets are published (on install, update, or first access).
      *
      * @return void
      */
-    protected function handleAutoInstall()
+    protected function ensureAssetsPublished()
     {
-        if (!config('artisan-ui.auto_install', true) || $this->app->runningInConsole()) {
-            return;
-        }
-
-        // Only run when accessing Artisan UI routes to avoid overhead
-        if (!request()->is(config('artisan-ui.path') . '*')) {
-            return;
-        }
-
         try {
             $sourcePath = __DIR__ . '/../resources/dist/index.js';
             $publicPath = public_path('vendor/artisan-ui/index.js');
-
-            // Force publish if assets are missing OR if the version has changed
             $versionFile = public_path('vendor/artisan-ui/.version');
-            $currentVersion = file_exists($versionFile) ? file_get_contents($versionFile) : '';
 
-            if (!file_exists($publicPath) || $currentVersion !== self::VERSION || (file_exists($sourcePath) && filemtime($sourcePath) > filemtime($publicPath))) {
-                // Check if directory exists, if not create it
-                if (!file_exists(public_path('vendor/artisan-ui'))) {
-                    mkdir(public_path('vendor/artisan-ui'), 0755, true);
+            // Key conditions to publish:
+            // 1. Assets don't exist yet (fresh install)
+            // 2. Version has changed (package updated)
+            // 3. Source files are newer than published files (unlikely but handle it)
+            $currentVersion = file_exists($versionFile) ? trim(file_get_contents($versionFile)) : '';
+            $versionChanged = $currentVersion !== self::VERSION;
+            $assetsExists = file_exists($publicPath);
+            $sourceIsNewer = file_exists($sourcePath) && $assetsExists && filemtime($sourcePath) > filemtime($publicPath);
+            
+            if (!$assetsExists || $versionChanged || $sourceIsNewer) {
+                // Ensure directory exists
+                $assetDir = public_path('vendor/artisan-ui');
+                if (!is_dir($assetDir)) {
+                    mkdir($assetDir, 0755, true);
                 }
 
+                // Run the publish command
                 Artisan::call('vendor:publish', [
                     '--tag' => 'artisan-ui-assets',
                     '--force' => true,
                 ]);
-                
-                // Refresh clear the stat cache to avoid continuous publishing
-                if (file_exists($publicPath)) {
-                    clearstatcache(true, $publicPath);
-                    // Ensure the public path has a fresh timestamp
-                    touch($publicPath);
-                    // Save the version to child directory
-                    file_put_contents($versionFile, self::VERSION);
-                }
-            }
 
-            // Check for migrations
-            if (!Schema::hasTable('artisan_ui_users')) {
-                Artisan::call('migrate');
+                // Also publish config if not exists
+                if (!file_exists(config_path('artisan-ui.php'))) {
+                    Artisan::call('vendor:publish', [
+                        '--tag' => 'artisan-ui-config',
+                        '--force' => true,
+                    ]);
+                }
+
+                // Update version file
+                file_put_contents($versionFile, self::VERSION);
+                
+                Log::info('Artisan UI assets published', [
+                    'version' => self::VERSION,
+                    'reason' => $versionChanged ? 'version-change' : ($assetsExists ? 'source-newer' : 'fresh-install')
+                ]);
             }
         } catch (Throwable $e) {
-            Log::warning('Artisan UI Auto-installation failed: ' . $e->getMessage(), [
-                'exception' => $e
+            Log::warning('Artisan UI asset publishing failed', [
+                'error' => $e->getMessage(),
+                'version' => self::VERSION
+            ]);
+        }
+    }
+
+    /**
+     * Ensure migrations have been run.
+     *
+     * @return void
+     */
+    protected function ensureMigrationsRun()
+    {
+        try {
+            if (!Schema::hasTable('artisan_ui_users')) {
+                Artisan::call('migrate', [
+                    '--path' => 'vendor/blessedjasonmwanza/artisan-ui/database/migrations',
+                    '--force' => true,
+                ]);
+                
+                Log::info('Artisan UI migrations executed automatically');
+            }
+        } catch (Throwable $e) {
+            Log::warning('Artisan UI migrations failed', [
+                'error' => $e->getMessage()
             ]);
         }
     }
