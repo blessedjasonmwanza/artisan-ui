@@ -69,12 +69,18 @@ class ArtisanUiServiceProvider extends ServiceProvider
         }
 
         try {
-            // Check for assets
-            if (!file_exists(public_path('vendor/artisan-ui/index.js'))) {
+            $sourcePath = __DIR__ . '/../resources/dist/index.js';
+            $publicPath = public_path('vendor/artisan-ui/index.js');
+
+            // Force publish if assets are missing OR if the package assets are newer than the public ones
+            if (!file_exists($publicPath) || (file_exists($sourcePath) && filemtime($sourcePath) > filemtime($publicPath))) {
                 Artisan::call('vendor:publish', [
                     '--tag' => 'artisan-ui-assets',
                     '--force' => true,
                 ]);
+                
+                // Refresh clear the stat cache to avoid continuous publishing
+                clearstatcache(true, $publicPath);
             }
 
             // Check for migrations

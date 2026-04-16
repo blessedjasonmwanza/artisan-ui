@@ -59,7 +59,7 @@ function Dashboard({ user }) {
             <DropdownMenu.Trigger>
               <Flex align="center" gap="2" style={{ cursor: 'pointer' }}>
                 <Avatar size="2" fallback={user?.name?.[0] || '?'} radius="full" color="indigo" />
-                <Text size="2" weight="medium">{user.name}</Text>
+                <Text size="2" weight="medium">{user?.name || 'User'}</Text>
               </Flex>
             </DropdownMenu.Trigger>
             <DropdownMenu.Content size="2">
@@ -75,7 +75,7 @@ function Dashboard({ user }) {
       <Flex style={{ flex: 1, overflow: 'hidden' }}>
         <Box width="300px" style={{ borderRight: '1px solid var(--gray-4)', background: 'var(--gray-1)', flexShrink: 0 }}>
           <CommandSidebar 
-            commands={commands} 
+            commands={commands || []} 
             loading={loading}
             selectedCommand={selectedCommand}
             onSelect={(cmd) => {

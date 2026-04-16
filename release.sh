@@ -3,6 +3,9 @@
 # Ensure we're in the project root
 cd "$(dirname "$0")"
 
+# Ensure Node environment is in PATH
+export PATH="/Users/Abraham/.nvm/versions/node/v24.11.1/bin:$PATH"
+
 # Colors for output
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'

@@ -57,22 +57,24 @@ function LogViewer() {
           </Table.Header>
 
           <Table.Body>
-            {logs.map(log => (
-              <Table.Row key={log.id}>
+            {(logs || []).map(log => (
+              <Table.Row key={log?.id || Math.random()}>
                 <Table.RowHeaderCell>
-                  <Text size="2" weight="bold">{log.command}</Text>
+                  <Text size="2" weight="bold">{log?.command || 'Unknown'}</Text>
                 </Table.RowHeaderCell>
                 <Table.Cell>
-                  <Badge color={getStatusColor(log.status)}>
-                    {log.status.toUpperCase()}
+                  <Badge color={getStatusColor(log?.status)}>
+                    {log?.status?.toUpperCase() || 'UNKNOWN'}
                   </Badge>
                 </Table.Cell>
                 <Table.Cell>
-                  <Text size="2">{format(new Date(log.started_at), 'MMM d, HH:mm:ss')}</Text>
+                  <Text size="2">
+                    {log?.started_at ? format(new Date(log.started_at), 'MMM d, HH:mm:ss') : '-'}
+                  </Text>
                 </Table.Cell>
                 <Table.Cell>
                   <Text size="2">
-                    {log.finished_at 
+                    {log?.finished_at && log?.started_at
                       ? `${Math.round((new Date(log.finished_at) - new Date(log.started_at)) / 1000)}s`
                       : '-'}
                   </Text>
@@ -85,15 +87,15 @@ function LogViewer() {
                       </IconButton>
                     </Dialog.Trigger>
                     <Dialog.Content style={{ maxWidth: 800 }}>
-                      <Dialog.Title>Log Details: {log.command}</Dialog.Title>
+                      <Dialog.Title>Log Details: {log?.command || 'Unknown'}</Dialog.Title>
                       <Dialog.Description size="2" mb="4">
-                        Status: {log.status} | Started: {log.started_at}
+                        Status: {log?.status || 'unknown'} | Started: {log?.started_at || 'unknown'}
                       </Dialog.Description>
                       
                       <Box mb="4">
                         <Text size="2" weight="bold" as="div" mb="1">Parameters:</Text>
                         <pre style={{ background: 'var(--gray-3)', padding: '8px', borderRadius: '4px', fontSize: '12px' }}>
-                          {JSON.stringify(log.parameters, null, 2)}
+                          {JSON.stringify(log?.parameters || {}, null, 2)}
                         </pre>
                       </Box>
 
@@ -101,7 +103,7 @@ function LogViewer() {
                         <Text size="2" weight="bold" as="div" mb="1">Output:</Text>
                         <ScrollArea style={{ height: 400, background: '#000', color: '#fff', padding: '12px', borderRadius: '4px' }}>
                           <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontSize: '12px', fontFamily: 'monospace' }}>
-                            {log.output || 'No output recorded'}
+                            {log?.output || 'No output recorded'}
                           </pre>
                         </ScrollArea>
                       </Box>

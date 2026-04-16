@@ -5,9 +5,9 @@ import { MagnifyingGlassIcon } from '@radix-ui/react-icons'
 function CommandSidebar({ commands, loading, selectedCommand, onSelect }) {
   const [search, setSearch] = useState('')
 
-  const filtered = commands.filter(cmd => 
-    cmd.name.toLowerCase().includes(search.toLowerCase()) ||
-    cmd.description.toLowerCase().includes(search.toLowerCase())
+  const filtered = (commands || []).filter(cmd => 
+    cmd?.name?.toLowerCase().includes(search.toLowerCase()) ||
+    cmd?.description?.toLowerCase().includes(search.toLowerCase())
   )
 
   const groups = filtered.reduce((acc, cmd) => {
@@ -39,29 +39,29 @@ function CommandSidebar({ commands, loading, selectedCommand, onSelect }) {
                 {namespace}
               </Text>
               <Flex direction="column" gap="1">
-                {cmds.map(cmd => (
+                {(cmds || []).map(cmd => (
                   <Box
-                    key={cmd.name}
+                    key={cmd?.name || Math.random()}
                     p="2"
                     style={{
                       cursor: 'pointer',
                       borderRadius: 'var(--radius-2)',
-                      background: selectedCommand?.name === cmd.name ? 'var(--indigo-4)' : 'transparent',
-                      color: selectedCommand?.name === cmd.name ? 'var(--indigo-11)' : 'var(--gray-11)',
+                      background: selectedCommand?.name === cmd?.name ? 'var(--indigo-4)' : 'transparent',
+                      color: selectedCommand?.name === cmd?.name ? 'var(--indigo-11)' : 'var(--gray-11)',
                     }}
                     onMouseEnter={(e) => {
-                      if (selectedCommand?.name !== cmd.name) e.currentTarget.style.background = 'var(--gray-3)'
+                      if (selectedCommand?.name !== cmd?.name) e.currentTarget.style.background = 'var(--gray-3)'
                     }}
                     onMouseLeave={(e) => {
-                      if (selectedCommand?.name !== cmd.name) e.currentTarget.style.background = 'transparent'
+                      if (selectedCommand?.name !== cmd?.name) e.currentTarget.style.background = 'transparent'
                     }}
                     onClick={() => onSelect(cmd)}
                   >
-                    <Text size="2" weight={selectedCommand?.name === cmd.name ? 'bold' : 'regular'}>
-                      {cmd.name.replace(namespace + ':', '') || cmd.name}
+                    <Text size="2" weight={selectedCommand?.name === cmd?.name ? 'bold' : 'regular'}>
+                      {cmd?.name ? (cmd.name.replace(namespace + ':', '') || cmd.name) : 'Unnamed Command'}
                     </Text>
                     <Text size="1" color="gray" truncate as="div">
-                      {cmd.description}
+                      {cmd?.description || 'No description available'}
                     </Text>
                   </Box>
                 ))}
