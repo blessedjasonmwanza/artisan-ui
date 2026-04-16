@@ -10,6 +10,7 @@ function CommandSidebar({ commands, loading, selectedCommand, onSelect }) {
     cmd.description.toLowerCase().includes(search.toLowerCase())
   )
 
+  const groups = filtered.reduce((acc, cmd) => {
     const namespace = cmd?.name?.includes(':') ? cmd.name.split(':')[0] : 'general'
     if (!acc[namespace]) acc[namespace] = []
     acc[namespace].push(cmd)
