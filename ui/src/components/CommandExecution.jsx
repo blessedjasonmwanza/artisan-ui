@@ -76,22 +76,22 @@ function CommandExecution({ command }) {
       <Flex gap="5">
         <Flex direction="column" gap="4" style={{ flex: 1 }}>
           {/* Arguments */}
-          {command.arguments.length > 0 && (
+          {Array.isArray(command?.arguments) && command.arguments.length > 0 && (
             <Card variant="surface">
               <Heading size="3" mb="3">Arguments</Heading>
               <Flex direction="column" gap="3">
                 {command.arguments.map(arg => (
-                  <Box key={arg.name}>
+                  <Box key={arg?.name || Math.random()}>
                     <Flex justify="between" mb="1">
-                      <Text size="2" weight="bold">{arg.name}</Text>
-                      {arg.required && <Badge color="red" variant="soft">Required</Badge>}
+                      <Text size="2" weight="bold">{arg?.name || 'Unnamed'}</Text>
+                      {arg?.required && <Badge color="red" variant="soft">Required</Badge>}
                     </Flex>
                     <TextField.Root 
-                      placeholder={arg.default || 'Enter value...'}
-                      value={params[arg.name] || ''}
+                      placeholder={arg?.default || 'Enter value...'}
+                      value={params[arg?.name] || ''}
                       onChange={(e) => handleParamChange(arg.name, e.target.value)}
                     />
-                    <Text size="1" color="gray" mt="1" as="div">{arg.description}</Text>
+                    <Text size="1" color="gray" mt="1" as="div">{arg?.description || ''}</Text>
                   </Box>
                 ))}
               </Flex>
@@ -99,18 +99,18 @@ function CommandExecution({ command }) {
           )}
 
           {/* Options */}
-          {command.options.length > 0 && (
+          {Array.isArray(command?.options) && command.options.length > 0 && (
             <Card variant="surface">
               <Heading size="3" mb="3">Options</Heading>
               <Flex direction="column" gap="4">
                 {command.options.map(opt => (
-                  <Box key={opt.name}>
-                    <Flex justify="between" align="center" mb={opt.is_flag ? "0" : "1"}>
+                  <Box key={opt?.name || Math.random()}>
+                    <Flex justify="between" align="center" mb={opt?.is_flag ? "0" : "1"}>
                       <Box>
-                        <Text size="2" weight="bold">--{opt.name}</Text>
-                        <Text size="1" color="gray" as="div">{opt.description}</Text>
+                        <Text size="2" weight="bold">--{opt?.name || 'unknown'}</Text>
+                        <Text size="1" color="gray" as="div">{opt?.description || ''}</Text>
                       </Box>
-                      {opt.is_flag ? (
+                      {opt?.is_flag ? (
                         <Switch 
                           checked={!!params['--' + opt.name]}
                           onCheckedChange={(val) => handleParamChange('--' + opt.name, val)}
@@ -118,7 +118,7 @@ function CommandExecution({ command }) {
                       ) : (
                         <TextField.Root 
                           style={{ width: 150 }}
-                          placeholder={opt.default || 'Value...'}
+                          placeholder={opt?.default || 'Value...'}
                           value={params['--' + opt.name] || ''}
                           onChange={(e) => handleParamChange('--' + opt.name, e.target.value)}
                         />

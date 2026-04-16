@@ -57,7 +57,7 @@ function LogViewer() {
           </Table.Header>
 
           <Table.Body>
-            {(logs || []).map(log => (
+            {(Array.isArray(logs) ? logs : []).map(log => (
               <Table.Row key={log?.id || Math.random()}>
                 <Table.RowHeaderCell>
                   <Text size="2" weight="bold">{log?.command || 'Unknown'}</Text>
