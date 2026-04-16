@@ -11,6 +11,8 @@ use Throwable;
 
 class ArtisanUiServiceProvider extends ServiceProvider
 {
+    const VERSION = '1.0.10';
+
     /**
      * Register services.
      *
@@ -72,8 +74,11 @@ class ArtisanUiServiceProvider extends ServiceProvider
             $sourcePath = __DIR__ . '/../resources/dist/index.js';
             $publicPath = public_path('vendor/artisan-ui/index.js');
 
-            // Force publish if assets are missing OR if the package assets are newer than the public ones
-            if (!file_exists($publicPath) || (file_exists($sourcePath) && filemtime($sourcePath) > filemtime($publicPath))) {
+            // Force publish if assets are missing OR if the version has changed
+            $versionFile = public_path('vendor/artisan-ui/.version');
+            $currentVersion = file_exists($versionFile) ? file_get_contents($versionFile) : '';
+
+            if (!file_exists($publicPath) || $currentVersion !== self::VERSION || (file_exists($sourcePath) && filemtime($sourcePath) > filemtime($publicPath))) {
                 // Check if directory exists, if not create it
                 if (!file_exists(public_path('vendor/artisan-ui'))) {
                     mkdir(public_path('vendor/artisan-ui'), 0755, true);
@@ -89,6 +94,8 @@ class ArtisanUiServiceProvider extends ServiceProvider
                     clearstatcache(true, $publicPath);
                     // Ensure the public path has a fresh timestamp
                     touch($publicPath);
+                    // Save the version to child directory
+                    file_put_contents($versionFile, self::VERSION);
                 }
             }
 

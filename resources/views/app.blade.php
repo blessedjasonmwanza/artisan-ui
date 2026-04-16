@@ -12,10 +12,10 @@
             apiUrl: '{{ url(config("artisan-ui.path") . "/api") }}'
         };
     </script>
-    <link rel="stylesheet" href="{{ asset('vendor/artisan-ui/index.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/artisan-ui/index.css') }}?v={{ \Blessedjasonmwanza\ArtisanUi\ArtisanUiServiceProvider::VERSION }}">
 </head>
 <body>
     <div id="root"></div>
-    <script type="module" src="{{ asset('vendor/artisan-ui/index.js') }}"></script>
+    <script type="module" src="{{ asset('vendor/artisan-ui/index.js') }}?v={{ \Blessedjasonmwanza\ArtisanUi\ArtisanUiServiceProvider::VERSION }}"></script>
 </body>
 </html>
