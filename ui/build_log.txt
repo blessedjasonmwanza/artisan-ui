@@ -1,0 +1,29 @@
+
+> artisan-ui-frontend@1.0.0 build
+> vite build
+
+vite v5.4.21 building for production...
+transforming...
+✓ 693 modules transformed.
+x Build failed in 877ms
+error during build:
+src/pages/Dashboard.jsx (3:56): "HistoryIcon" is not exported by "node_modules/@radix-ui/react-icons/dist/react-icons.esm.js", imported by "src/pages/Dashboard.jsx".
+file: /Users/Abraham/Documents/projects/artisan-ui/ui/src/pages/Dashboard.jsx:3:56
+
+1: import React, { useState, useEffect } from 'react'
+2: import { Box, Flex, ScrollArea, Heading, Text, Badge, Card, IconButton, Tooltip, Avatar, DropdownMenu, Button, Segmen...
+3: import { MagnifyingGlassIcon, PlayIcon, ListBulletIcon, HistoryIcon, ExitIcon, ChevronRightIcon, ExternalLinkIcon, Cu...
+                                                           ^
+4: import api from '../api'
+5: import CommandSidebar from '../components/CommandSidebar'
+
+    at getRollupError (file:///Users/Abraham/Documents/projects/artisan-ui/ui/node_modules/rollup/dist/es/shared/parseAst.js:406:41)
+    at error (file:///Users/Abraham/Documents/projects/artisan-ui/ui/node_modules/rollup/dist/es/shared/parseAst.js:402:42)
+    at Module.error (file:///Users/Abraham/Documents/projects/artisan-ui/ui/node_modules/rollup/dist/es/shared/node-entry.js:17380:16)
+    at Module.traceVariable (file:///Users/Abraham/Documents/projects/artisan-ui/ui/node_modules/rollup/dist/es/shared/node-entry.js:17813:29)
+    at ModuleScope.findVariable (file:///Users/Abraham/Documents/projects/artisan-ui/ui/node_modules/rollup/dist/es/shared/node-entry.js:15403:39)
+    at FunctionScope.findVariable (file:///Users/Abraham/Documents/projects/artisan-ui/ui/node_modules/rollup/dist/es/shared/node-entry.js:5676:38)
+    at FunctionBodyScope.findVariable (file:///Users/Abraham/Documents/projects/artisan-ui/ui/node_modules/rollup/dist/es/shared/node-entry.js:5676:38)
+    at Identifier.bind (file:///Users/Abraham/Documents/projects/artisan-ui/ui/node_modules/rollup/dist/es/shared/node-entry.js:5450:40)
+    at CallExpression.bind (file:///Users/Abraham/Documents/projects/artisan-ui/ui/node_modules/rollup/dist/es/shared/node-entry.js:2828:28)
+    at CallExpression.bind (file:///Users/Abraham/Documents/projects/artisan-ui/ui/node_modules/rollup/dist/es/shared/node-entry.js:12512:15)
