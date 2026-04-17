@@ -38,8 +38,11 @@ class EnsureSetupComplete
         // If setup is complete (users exist), prevent access to setup pages
         if ($hasUsers) {
             // Allow setup-status even if setup is complete (so frontend can redirect to login)
-            if (($request->routeIs('artisan-ui.setup') || $request->is($path . '/api/setup*')) && 
-                !$request->routeIs('artisan-ui.api.setup-status')) {
+            // Use path matching as routeIs might not be available yet in some middleware contexts
+            $isSetupPath = $request->is($path . '/setup*') || $request->is($path . '/api/setup*');
+            $isSetupStatusPath = $request->is($path . '/api/setup-status*');
+
+            if ($isSetupPath && !$isSetupStatusPath) {
                 if ($request->expectsJson()) {
                     return response()->json(['message' => 'Setup already completed.'], 400);
                 }
