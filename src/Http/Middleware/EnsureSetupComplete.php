@@ -89,11 +89,24 @@ class EnsureSetupComplete
                     '--force' => true,
                 ]);
                 
-                Log::info('Artisan UI migrations executed automatically', ['path' => $migrationPath]);
+                $output = Artisan::output();
+                
+                if (Schema::hasTable('artisan_ui_users')) {
+                    Log::info('Artisan UI migrations executed successfully', [
+                        'path' => $migrationPath,
+                        'output' => $output
+                    ]);
+                } else {
+                    Log::error('Artisan UI migrations completed but table "artisan_ui_users" is still missing.', [
+                        'path' => $migrationPath,
+                        'output' => $output
+                    ]);
+                }
             }
-        } catch (Throwable $e) {
-            Log::warning('Artisan UI migrations failed', [
-                'error' => $e->getMessage()
+        } catch (\Throwable $e) {
+            Log::error('Artisan UI migrations failed with exception', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
         }
     }
