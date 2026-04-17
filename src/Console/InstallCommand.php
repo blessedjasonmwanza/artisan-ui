@@ -50,15 +50,34 @@ class InstallCommand extends Command
         if ($this->confirm('Would you like to run the database migrations now?', true)) {
             $this->info('Running Artisan UI migrations...');
 
-            if (Schema::hasTable('artisan_ui_users')) {
-                $this->info('Artisan UI database table already exists. Skipping package migrations.');
-            } else {
-                $migrationPath = realpath(__DIR__ . '/../../database/migrations');
+            $migrationPath = realpath(__DIR__ . '/../../database/migrations');
+            $this->call('migrate', [
+                '--path' => $migrationPath,
+                '--realpath' => true,
+                '--force' => true,
+            ]);
+
+            $output = \Illuminate\Support\Facades\Artisan::output();
+
+            if (!Schema::hasTable('artisan_ui_users') && str_contains($output, 'Nothing to migrate')) {
+                $this->warn('Artisan UI migrations out of sync. Cleaning up stale migration records and retrying...');
+                
+                \Illuminate\Support\Facades\DB::table('migrations')
+                    ->where('migration', 'like', '%create_artisan_ui_users_table%')
+                    ->orWhere('migration', 'like', '%create_artisan_ui_logs_table%')
+                    ->delete();
+                    
                 $this->call('migrate', [
                     '--path' => $migrationPath,
                     '--realpath' => true,
                     '--force' => true,
                 ]);
+            }
+
+            if (Schema::hasTable('artisan_ui_users')) {
+                $this->info('Artisan UI database migrations completed successfully.');
+            } else {
+                $this->error('Artisan UI database table "artisan_ui_users" is still missing after migration.');
             }
         }
 
@@ -101,7 +120,14 @@ class InstallCommand extends Command
             $this->info('Dropping Artisan UI database table...');
             Schema::dropIfExists('artisan_ui_users');
             Schema::dropIfExists('artisan_ui_logs');
-            $this->info('Database tables dropped successfully.');
+            
+            // Also clean up migration records
+            \Illuminate\Support\Facades\DB::table('migrations')
+                ->where('migration', 'like', '%create_artisan_ui_users_table%')
+                ->orWhere('migration', 'like', '%create_artisan_ui_logs_table%')
+                ->delete();
+
+            $this->info('Database tables and migration records dropped successfully.');
         }
 
         $this->info('Artisan UI uninstalled successfully!');

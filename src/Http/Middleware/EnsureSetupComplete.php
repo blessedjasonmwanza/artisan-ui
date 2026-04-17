@@ -91,6 +91,25 @@ class EnsureSetupComplete
                 
                 $output = Artisan::output();
                 
+                // RECOVERY: If table is still missing but migrate said "Nothing to migrate",
+                // it means the migrations table is out of sync with the actual database.
+                if (!Schema::hasTable('artisan_ui_users') && str_contains($output, 'Nothing to migrate')) {
+                    Log::warning('Artisan UI migrations out of sync. Cleaning up stale migration records and retrying...');
+                    
+                    DB::table('migrations')
+                        ->where('migration', 'like', '%create_artisan_ui_users_table%')
+                        ->orWhere('migration', 'like', '%create_artisan_ui_logs_table%')
+                        ->delete();
+                        
+                    Artisan::call('migrate', [
+                        '--path' => $migrationPath,
+                        '--realpath' => true,
+                        '--force' => true,
+                    ]);
+                    
+                    $output = Artisan::output();
+                }
+                
                 if (Schema::hasTable('artisan_ui_users')) {
                     Log::info('Artisan UI migrations executed successfully', [
                         'path' => $migrationPath,
