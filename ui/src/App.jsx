@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { Flex, Box, Spinner } from '@radix-ui/themes'
+import { Flex, Box, Spinner, Callout } from '@radix-ui/themes'
+import { InfoCircledIcon } from '@radix-ui/react-icons'
 import api from './api'
 import ErrorBoundary from './components/ErrorBoundary'
 
@@ -10,6 +11,7 @@ import Login from './pages/Login'
 import Setup from './pages/Setup'
 
 function App() {
+  const [user, setUser] = useState(null)
   const [setupRequired, setSetupRequired] = useState(false)
   const [initialized, setInitialized] = useState(false)
   const [initError, setInitError] = useState(false)
