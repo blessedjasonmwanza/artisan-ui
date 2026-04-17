@@ -19,7 +19,7 @@ class EnsureSetupComplete
      */
     public function handle(Request $request, Closure $next)
     {
-        if (!config('artisan-ui.auth.enabled')) {
+        if (!config('artisan-ui.auth.enabled') || Schema::hasTable('artisan_ui_users') && DB::table('artisan_ui_users')->count() > 0) {
             return $next($request);
         }
 

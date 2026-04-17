@@ -27,7 +27,8 @@
     "minimum-stability": "dev",
     "config": {
         "allow-plugins": {
-            "composer/package-versions": true
+            "composer/package-versions": true,
+            "pestphp/pest-plugin": true
         }
     },
     "extra": {
