@@ -46,11 +46,15 @@ class EnsureSetupComplete
 
         // If setup is not complete (no table or no users), allow access to setup-related routes
         if (!$tableExists || !$hasUsers) {
-            // Allow setup page and and critical initialization API routes
+            $path = trim(config('artisan-ui.path', 'artisan-ui'), '/');
+            
+            // Allow setup page and critical initialization API routes
             if ($request->routeIs('artisan-ui.setup') || 
                 $request->routeIs('artisan-ui.api.setup') || 
                 $request->routeIs('artisan-ui.api.setup-status') ||
-                $request->is('artisan-ui/api/*') || 
+                $request->is($path . '/setup') || 
+                $request->is($path . '/api/setup') || 
+                $request->is($path . '/api/setup-status') ||
                 $request->expectsJson()) {
                 return $next($request);
             }

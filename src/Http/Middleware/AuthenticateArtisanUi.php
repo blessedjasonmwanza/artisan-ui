@@ -22,11 +22,17 @@ class AuthenticateArtisanUi
         }
 
         // Allow setup and login routes without authentication
+        $path = trim(config('artisan-ui.path', 'artisan-ui'), '/');
         if ($request->routeIs('artisan-ui.login') || 
             $request->routeIs('artisan-ui.setup') ||
             $request->routeIs('artisan-ui.api.login') ||
             $request->routeIs('artisan-ui.api.setup') ||
-            $request->routeIs('artisan-ui.api.setup-status')) {
+            $request->routeIs('artisan-ui.api.setup-status') ||
+            $request->is($path . '/login') || 
+            $request->is($path . '/setup') || 
+            $request->is($path . '/api/login') || 
+            $request->is($path . '/api/setup') || 
+            $request->is($path . '/api/setup-status')) {
             return $next($request);
         }
 

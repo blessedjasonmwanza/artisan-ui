@@ -10,8 +10,9 @@ import Login from './pages/Login'
 import Setup from './pages/Setup'
 
 function App() {
-  const [user, setUser] = useState(null)
   const [setupRequired, setSetupRequired] = useState(false)
+  const [initialized, setInitialized] = useState(false)
+  const [initError, setInitError] = useState(false)
   const [loading, setLoading] = useState(true)
   const location = useLocation()
 
@@ -20,8 +21,10 @@ function App() {
       const setupResponse = await api.get('/setup-status')
       const { setup_required, auth_disabled } = setupResponse?.data || {}
       
+      setSetupRequired(!!setup_required)
+      
       if (setup_required) {
-        setSetupRequired(true)
+        setInitialized(true)
         setLoading(false)
         return
       }
@@ -29,6 +32,7 @@ function App() {
       // If auth is disabled, skip user check and show dashboard
       if (auth_disabled) {
         setUser({ id: 1, name: 'Admin', email: 'admin@example.com' })
+        setInitialized(true)
         setLoading(false)
         return
       }
@@ -36,9 +40,10 @@ function App() {
       // Setup is complete, check user
       await checkUser()
     } catch (error) {
-      console.error('[App] Setup status check error:', error?.response?.status)
-      // If we can't check setup status, try to check user
-      await checkUser()
+      console.error('[App] Setup status check failed:', error)
+      setInitError(true)
+      setInitialized(true)
+      setLoading(false)
     }
   }
 
@@ -48,18 +53,15 @@ function App() {
       const userData = response?.data
       if (userData && typeof userData === 'object') {
         setUser(userData)
-        setSetupRequired(false)
       } else {
         setUser(null)
       }
     } catch (error) {
-      console.error('[App] User check error:', error?.response?.status)
       if (error?.response?.status === 401) {
         setUser(null)
-      } else if (error?.response?.status === 0) {
-        console.error('[App] Network error checking user')
       }
     } finally {
+      setInitialized(true)
       setLoading(false)
     }
   }
@@ -68,10 +70,23 @@ function App() {
     checkSetupStatus()
   }, [location.pathname])
 
-  if (loading) {
+  if (!initialized || loading) {
     return (
       <Flex align="center" justify="center" style={{ height: '100vh' }}>
         <Spinner size="3" />
+      </Flex>
+    )
+  }
+
+  if (initError) {
+    return (
+      <Flex align="center" justify="center" style={{ height: '100vh' }}>
+        <Callout.Root color="red">
+          <Callout.Icon><InfoCircledIcon /></Callout.Icon>
+          <Callout.Text>
+            Failed to connect to Artisan UI API. Please check your installation.
+          </Callout.Text>
+        </Callout.Root>
       </Flex>
     )
   }
