@@ -17,6 +17,9 @@ Artisan UI is a production-grade Laravel package that provides a secure, modern 
 - PHP 8.2+
 - Laravel 10.0, 11.0, or 12.0+
 
+> [!NOTE]
+> **PHP Version Support**: Artisan UI supports PHP 8.2 and all future versions. If you encounter installation issues with a newer PHP version, see [Installation Troubleshooting Guide](./INSTALLATION_TROUBLESHOOTING.md).
+
 ## Installation
 
 Getting started is simple. Artisan UI features **Zero-Config Installation**—it handles everything automatically.
