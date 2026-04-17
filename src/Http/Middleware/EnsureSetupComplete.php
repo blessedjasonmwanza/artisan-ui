@@ -35,7 +35,7 @@ class EnsureSetupComplete
 
         // If setup is complete (users exist), prevent access to setup pages
         if ($hasUsers) {
-            if ($request->routeIs('artisan-ui.setup') || $request->is('artisan-ui/api/setup')) {
+            if ($request->routeIs('artisan-ui.setup') || $request->is($path . '/api/setup*')) {
                 if ($request->expectsJson()) {
                     return response()->json(['message' => 'Setup already completed.'], 400);
                 }
@@ -44,25 +44,21 @@ class EnsureSetupComplete
             return $next($request);
         }
 
-        // If setup is not complete (no table or no users), allow access to setup-related routes
+        // If setup is not complete, ONLY allow setup routes
         if (!$tableExists || !$hasUsers) {
-            $path = trim(config('artisan-ui.path', 'artisan-ui'), '/');
-            
-            // Allow setup, login, and SPA entry routes
-            if ($request->routeIs('artisan-ui.setup') || 
-                $request->routeIs('artisan-ui.login') ||
-                $request->routeIs('artisan-ui.index') ||
-                $request->routeIs('artisan-ui.api.setup') || 
-                $request->routeIs('artisan-ui.api.setup-status') ||
-                $request->routeIs('artisan-ui.api.login') ||
-                $request->is($path . '/setup*') || 
-                $request->is($path . '/login*') || 
-                $request->is($path . '/api/setup*') || 
-                $request->is($path . '/api/setup-status*') ||
-                $request->is($path . '/api/login*')) {
+            // Check if it's a setup-related request
+            $isSetupRequest = $request->routeIs('artisan-ui.setup') || 
+                             $request->routeIs('artisan-ui.api.setup') || 
+                             $request->routeIs('artisan-ui.api.setup-status') ||
+                             $request->is($path . '/setup*') || 
+                             $request->is($path . '/api/setup*') || 
+                             $request->is($path . '/api/setup-status*');
+
+            if ($isSetupRequest) {
                 return $next($request);
             }
 
+            // For all other requests, redirect to setup (or 403 for API)
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'Setup not complete. Please visit the setup page.',

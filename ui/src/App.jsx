@@ -98,27 +98,17 @@ function App() {
       <Routes>
         <Route 
           path="/setup" 
-          element={
-            setupRequired === true ? <Setup onSetup={checkSetupStatus} /> : 
-            setupRequired === false ? <Navigate to="/" /> : 
-            null
-          } 
+          element={<Setup onSetup={checkSetupStatus} />} 
         />
         <Route 
           path="/login" 
-          element={
-            setupRequired === false && !user ? <Login onLogin={checkSetupStatus} /> : 
-            setupRequired === true ? <Navigate to="/setup" /> : 
-            user ? <Navigate to="/" /> :
-            null
-          } 
+          element={!user ? <Login onLogin={checkSetupStatus} /> : <Dashboard user={user} />} 
         />
         <Route 
           path="/*" 
           element={
-            setupRequired === true ? <Navigate to="/setup" /> : 
-            setupRequired === false ? (user ? <Dashboard user={user} /> : <Navigate to="/login" />) : 
-            null
+            setupRequired === true ? <Setup onSetup={checkSetupStatus} /> : 
+            user ? <Dashboard user={user} /> : <Login onLogin={checkSetupStatus} />
           } 
         />
       </Routes>
