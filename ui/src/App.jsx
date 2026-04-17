@@ -26,11 +26,12 @@ function App() {
       setSetupRequired(!!setup_required)
       
       if (setup_required) {
+        setUser(null)
         setInitialized(true)
         setLoading(false)
         return
       }
-
+      
       // If auth is disabled, skip user check and show dashboard
       if (auth_disabled) {
         setUser({ id: 1, name: 'Admin', email: 'admin@example.com' })
@@ -98,11 +99,18 @@ function App() {
       <Routes>
         <Route 
           path="/setup" 
-          element={setupRequired === false ? <Navigate to="/login" replace /> : <Setup onSetup={checkSetupStatus} />} 
+          element={
+            setupRequired === false ? <Navigate to="/login" replace /> : 
+            <Setup onSetup={checkSetupStatus} />
+          } 
         />
         <Route 
           path="/login" 
-          element={user ? <Navigate to="/" replace /> : <Login onLogin={checkSetupStatus} />} 
+          element={
+            setupRequired === true ? <Navigate to="/setup" replace /> :
+            user ? <Navigate to="/" replace /> : 
+            <Login onLogin={checkSetupStatus} />
+          } 
         />
         <Route 
           path="/*" 
