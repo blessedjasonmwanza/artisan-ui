@@ -94,10 +94,12 @@ class AuthController extends Controller
 
         // If no users exist, setup is required
         if ($userCount === 0) {
+            \Log::debug('[AuthController] authState: No users found, returning setup state');
             return response()->json([
                 'state' => 'setup',
                 'user' => null,
-                'auth_disabled' => false
+                'auth_disabled' => false,
+                'debug' => ['user_count' => 0]
             ]);
         }
 
@@ -106,10 +108,12 @@ class AuthController extends Controller
         
         if (!$userId) {
             // No authenticated session
+            \Log::debug('[AuthController] authState: Users exist but no session, returning login state');
             return response()->json([
                 'state' => 'login',
                 'user' => null,
-                'auth_disabled' => false
+                'auth_disabled' => false,
+                'debug' => ['user_count' => $userCount, 'has_session' => false]
             ]);
         }
 
@@ -118,15 +122,18 @@ class AuthController extends Controller
 
         if (!$user) {
             // User session is stale, clear it
+            \Log::debug('[AuthController] authState: Session user not found, clearing session');
             Session::forget('artisan_ui_user_id');
             return response()->json([
                 'state' => 'login',
                 'user' => null,
-                'auth_disabled' => false
+                'auth_disabled' => false,
+                'debug' => ['user_count' => $userCount, 'session_user_not_found' => true]
             ]);
         }
 
         // User is fully authenticated
+        \Log::debug('[AuthController] authState: User authenticated, returning dashboard state', ['user_id' => $user->id]);
         return response()->json([
             'state' => 'dashboard',
             'user' => $user,

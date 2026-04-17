@@ -39,11 +39,31 @@ function App() {
       setError(null)
 
       const response = await api.get('/auth-state')
-      const { state, user: userData, auth_disabled } = response?.data || {}
+      const responseData = response?.data || {}
+      const { state, user: userData, auth_disabled } = responseData
 
-      // Validate backend response
-      if (!state || !Object.values(AUTH_STATES).includes(state)) {
-        throw new Error('Invalid auth state from backend')
+      // Log for debugging
+      console.log('[App] Auth state response:', { state, hasUser: !!userData, auth_disabled })
+
+      // Handle error responses (e.g., 403 when setup not complete)
+      if (!state) {
+        console.error('[App] Missing state in response:', responseData)
+        
+        // If we got a setup_required flag, handle that
+        if (responseData.setup_required === true) {
+          console.log('[App] Setup required from error response')
+          setAuthState(AUTH_STATES.SETUP)
+          setUser(null)
+          return
+        }
+        
+        throw new Error('Invalid auth state from backend: missing state field')
+      }
+
+      // Validate state value
+      if (!Object.values(AUTH_STATES).includes(state)) {
+        console.error('[App] Invalid state value:', state, 'Expected one of:', Object.values(AUTH_STATES))
+        throw new Error(`Invalid auth state from backend: state="${state}" is not valid`)
       }
 
       // Update state based on backend response
@@ -51,7 +71,7 @@ function App() {
       setUser(userData || null)
 
     } catch (err) {
-      console.error('[App] Failed to fetch auth state:', err)
+      console.error('[App] Failed to fetch auth state:', err?.message, err?.response?.data)
       setAuthState(AUTH_STATES.ERROR)
       setError(err?.response?.data?.message || err.message || 'Failed to connect to server')
       setUser(null)

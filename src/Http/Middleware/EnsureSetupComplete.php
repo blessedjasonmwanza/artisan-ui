@@ -32,6 +32,13 @@ class EnsureSetupComplete
             return $next($request);
         }
 
+        // ALWAYS allow auth-state endpoint - it's the single source of truth for UI state
+        // This must be checked BEFORE any other setup checks
+        if ($request->routeIs('artisan-ui.api.auth-state') || 
+            str_contains($request->getPathInfo(), '/api/auth-state')) {
+            return $next($request);
+        }
+
         $tableExists = Schema::hasTable('artisan_ui_users');
         $hasUsers = $tableExists && DB::table('artisan_ui_users')->count() > 0;
 
