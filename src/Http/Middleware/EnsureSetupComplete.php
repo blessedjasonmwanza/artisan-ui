@@ -7,6 +7,9 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class EnsureSetupComplete
 {
@@ -19,6 +22,9 @@ class EnsureSetupComplete
      */
     public function handle(Request $request, Closure $next)
     {
+        // Ensure migrations are run on first access
+        $this->ensureMigrationsRun();
+
         // If auth is disabled, allow access
         if (!config('artisan-ui.auth.enabled')) {
             return $next($request);
@@ -39,5 +45,28 @@ class EnsureSetupComplete
 
         // Setup is complete, allow access
         return $next($request);
+    }
+
+    /**
+     * Ensure migrations have been run.
+     *
+     * @return void
+     */
+    protected function ensureMigrationsRun()
+    {
+        try {
+            if (!Schema::hasTable('artisan_ui_users')) {
+                Artisan::call('migrate', [
+                    '--path' => 'vendor/blessedjasonmwanza/artisan-ui/database/migrations',
+                    '--force' => true,
+                ]);
+                
+                Log::info('Artisan UI migrations executed automatically');
+            }
+        } catch (Throwable $e) {
+            Log::warning('Artisan UI migrations failed', [
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 }

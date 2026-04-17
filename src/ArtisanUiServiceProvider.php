@@ -44,7 +44,7 @@ class ArtisanUiServiceProvider extends ServiceProvider
         
         // Auto-publish assets and run migrations
         $this->ensureAssetsPublished();
-        $this->ensureMigrationsRun();
+        // $this->ensureMigrationsRun(); // Moved to middleware
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
@@ -109,29 +109,6 @@ class ArtisanUiServiceProvider extends ServiceProvider
             Log::warning('Artisan UI asset publishing failed', [
                 'error' => $e->getMessage(),
                 'version' => self::VERSION
-            ]);
-        }
-    }
-
-    /**
-     * Ensure migrations have been run.
-     *
-     * @return void
-     */
-    protected function ensureMigrationsRun()
-    {
-        try {
-            if (!Schema::hasTable('artisan_ui_users')) {
-                Artisan::call('migrate', [
-                    '--path' => 'vendor/blessedjasonmwanza/artisan-ui/database/migrations',
-                    '--force' => true,
-                ]);
-                
-                Log::info('Artisan UI migrations executed automatically');
-            }
-        } catch (Throwable $e) {
-            Log::warning('Artisan UI migrations failed', [
-                'error' => $e->getMessage()
             ]);
         }
     }

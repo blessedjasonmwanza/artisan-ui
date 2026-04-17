@@ -18,5 +18,5 @@ Route::prefix(config('artisan-ui.path'))
         // SPA Entry
         Route::get('/{view?}', function () {
             return view('artisan-ui::app');
-        })->where('view', '(.*)')->name('artisan-ui.index');
+        })->where('view', '.*')->name('artisan-ui.index');
     });
