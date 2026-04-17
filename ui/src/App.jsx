@@ -45,10 +45,16 @@ function App() {
       // Log for debugging
       console.log('[App] Auth state response:', { state, hasUser: !!userData, auth_disabled })
 
-      // Handle error responses (e.g., 403 when setup not complete)
+      // Handle error responses (e.g., 403 when setup not complete or HTML returned)
       if (!state) {
         console.error('[App] Missing state in response:', responseData)
         
+        // If we got an HTML response instead of JSON, identify it
+        if (typeof responseData === 'string' && responseData.trim().startsWith('<!DOCTYPE html>')) {
+          console.error('[App] Received HTML instead of JSON. This usually indicates a routing conflict.')
+          throw new Error('Server returned HTML instead of JSON. Please check your route configuration.')
+        }
+
         // If we got a setup_required flag, handle that
         if (responseData.setup_required === true) {
           console.log('[App] Setup required from error response')

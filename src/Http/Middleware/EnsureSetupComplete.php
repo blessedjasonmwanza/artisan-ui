@@ -32,11 +32,38 @@ class EnsureSetupComplete
             return $next($request);
         }
 
-        // ALWAYS allow auth-state endpoint - it's the single source of truth for UI state
-        // This must be checked BEFORE any other setup checks
-        if ($request->routeIs('artisan-ui.api.auth-state') || 
-            str_contains($request->getPathInfo(), '/api/auth-state')) {
-            return $next($request);
+        // ALWAYS allow critical API endpoints - they are the source of truth for UI state
+        // This must be checked BEFORE any other setup checks to prevent redirection loops
+        $isApiRequest = $request->expectsJson() || str_contains($request->getPathInfo(), '/api/');
+        
+        if ($isApiRequest) {
+            $allowedApiRoutes = [
+                'artisan-ui.api.auth-state',
+                'artisan-ui.api.setup-status',
+                'artisan-ui.api.setup',
+                'artisan-ui.api.login'
+            ];
+
+            $isAllowedApi = false;
+            foreach ($allowedApiRoutes as $routeName) {
+                if ($request->routeIs($routeName)) {
+                    $isAllowedApi = true;
+                    break;
+                }
+            }
+
+            // Fallback path matching if routeIs fails
+            if (!$isAllowedApi) {
+                $pathInfo = $request->getPathInfo();
+                $isAllowedApi = str_contains($pathInfo, '/api/auth-state') || 
+                               str_contains($pathInfo, '/api/setup-status') ||
+                               str_contains($pathInfo, '/api/setup') ||
+                               str_contains($pathInfo, '/api/login');
+            }
+
+            if ($isAllowedApi) {
+                return $next($request);
+            }
         }
 
         $tableExists = Schema::hasTable('artisan_ui_users');
@@ -69,7 +96,9 @@ class EnsureSetupComplete
                              $request->is($path . '/setup*') || 
                              $request->is($path . '/api/setup*') || 
                              $request->is($path . '/api/setup-status*') ||
-                             $request->is($path . '/api/auth-state*');
+                             $request->is($path . '/api/auth-state*') ||
+                             str_contains($request->getPathInfo(), '/api/setup') ||
+                             str_contains($request->getPathInfo(), '/api/auth-state');
 
             if ($isSetupRequest) {
                 return $next($request);

@@ -15,8 +15,8 @@ Route::prefix(config('artisan-ui.path'))
         
         Route::post('/logout', [AuthController::class, 'logout'])->name('artisan-ui.logout');
 
-        // SPA Entry
+        // SPA Entry - Exclude API routes from catch-all to prevent them from returning HTML
         Route::get('/{view?}', function () {
             return view('artisan-ui::app');
-        })->where('view', '.*')->name('artisan-ui.index');
+        })->where('view', '^(?!api/).*')->name('artisan-ui.index');
     });
