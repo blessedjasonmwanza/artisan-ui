@@ -12,7 +12,7 @@ import Setup from './pages/Setup'
 
 function App() {
   const [user, setUser] = useState(null)
-  const [setupRequired, setSetupRequired] = useState(false)
+  const [setupRequired, setSetupRequired] = useState(null)
   const [initialized, setInitialized] = useState(false)
   const [initError, setInitError] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -59,7 +59,7 @@ function App() {
         setUser(null)
       }
     } catch (error) {
-      if (error?.response?.status === 401) {
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
         setUser(null)
       }
     } finally {
@@ -98,18 +98,27 @@ function App() {
       <Routes>
         <Route 
           path="/setup" 
-          element={setupRequired ? <Setup onSetup={checkSetupStatus} /> : <Navigate to="/" />} 
+          element={
+            setupRequired === true ? <Setup onSetup={checkSetupStatus} /> : 
+            setupRequired === false ? <Navigate to="/" /> : 
+            null
+          } 
         />
         <Route 
           path="/login" 
-          element={!setupRequired && !user ? <Login onLogin={checkSetupStatus} /> : <Navigate to="/" />} 
+          element={
+            setupRequired === false && !user ? <Login onLogin={checkSetupStatus} /> : 
+            setupRequired === true ? <Navigate to="/setup" /> : 
+            user ? <Navigate to="/" /> :
+            null
+          } 
         />
         <Route 
           path="/*" 
           element={
-            setupRequired ? <Navigate to="/setup" /> : 
-            user ? <Dashboard user={user} /> : 
-            <Navigate to="/login" />
+            setupRequired === true ? <Navigate to="/setup" /> : 
+            setupRequired === false ? (user ? <Dashboard user={user} /> : <Navigate to="/login" />) : 
+            null
           } 
         />
       </Routes>

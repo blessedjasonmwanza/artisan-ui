@@ -48,13 +48,18 @@ class EnsureSetupComplete
         if (!$tableExists || !$hasUsers) {
             $path = trim(config('artisan-ui.path', 'artisan-ui'), '/');
             
-            // Allow setup page and critical initialization API routes
+            // Allow setup, login, and SPA entry routes
             if ($request->routeIs('artisan-ui.setup') || 
+                $request->routeIs('artisan-ui.login') ||
+                $request->routeIs('artisan-ui.index') ||
                 $request->routeIs('artisan-ui.api.setup') || 
                 $request->routeIs('artisan-ui.api.setup-status') ||
+                $request->routeIs('artisan-ui.api.login') ||
                 $request->is($path . '/setup*') || 
+                $request->is($path . '/login*') || 
                 $request->is($path . '/api/setup*') || 
-                $request->is($path . '/api/setup-status*')) {
+                $request->is($path . '/api/setup-status*') ||
+                $request->is($path . '/api/login*')) {
                 return $next($request);
             }
 
