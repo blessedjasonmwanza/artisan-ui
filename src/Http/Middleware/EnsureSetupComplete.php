@@ -30,13 +30,8 @@ class EnsureSetupComplete
 
         // If setup is not complete (no table or no users), allow access to setup-related routes
         if (!$tableExists || !$hasUsers) {
-            $allowedRoutes = [
-                'artisan-ui.setup',
-                'artisan-ui.api.setup-status',
-                'artisan-ui.api.setup',
-            ];
-
-            if (in_array($request->route()->getName(), $allowedRoutes) || $request->expectsJson()) {
+            // Allow setup page and all API routes
+            if ($request->routeIs('artisan-ui.setup') || $request->is('artisan-ui/api/*') || $request->expectsJson()) {
                 return $next($request);
             }
             return redirect()->route('artisan-ui.setup');

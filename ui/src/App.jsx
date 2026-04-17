@@ -18,10 +18,17 @@ function App() {
   const checkSetupStatus = async () => {
     try {
       const setupResponse = await api.get('/setup-status')
-      const { setup_required } = setupResponse?.data || {}
+      const { setup_required, auth_disabled } = setupResponse?.data || {}
       
       if (setup_required) {
         setSetupRequired(true)
+        setLoading(false)
+        return
+      }
+
+      // If auth is disabled, skip user check and show dashboard
+      if (auth_disabled) {
+        setUser({ id: 1, name: 'Admin', email: 'admin@example.com' })
         setLoading(false)
         return
       }
