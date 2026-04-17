@@ -54,6 +54,14 @@ The package will automatically handle:
 > php artisan vendor:publish --tag=artisan-ui-assets --force
 > php artisan vendor:publish --tag=artisan-ui-config --force
 > ```
+>
+> **Uninstallation**: To remove the package completely:
+>
+> ```bash
+> php artisan artisan-ui:install --uninstall
+> ```
+>
+> This will remove published assets, configuration files, and optionally drop database tables.
 
 ---
 

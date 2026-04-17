@@ -13,7 +13,7 @@ class InstallCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'artisan-ui:install';
+    protected $signature = 'artisan-ui:install {--uninstall : Uninstall the package}';
 
     /**
      * The console command description.
@@ -29,6 +29,10 @@ class InstallCommand extends Command
      */
     public function handle()
     {
+        if ($this->option('uninstall')) {
+            return $this->handleUninstall();
+        }
+
         $this->info('Installing Artisan UI...');
 
         $this->info('Publishing configuration...');
@@ -57,6 +61,48 @@ class InstallCommand extends Command
         }
 
         $this->info('Artisan UI installed successfully!');
+
+        return 0;
+    }
+
+    /**
+     * Handle the uninstall process.
+     *
+     * @return int
+     */
+    protected function handleUninstall()
+    {
+        $this->info('Uninstalling Artisan UI...');
+
+        // Remove published assets
+        $assetDir = public_path('vendor/artisan-ui');
+        if (is_dir($assetDir)) {
+            $this->info('Removing published assets...');
+            File::deleteDirectory($assetDir);
+            $this->info('Assets removed successfully.');
+        } else {
+            $this->info('No published assets found.');
+        }
+
+        // Remove config file
+        $configFile = config_path('artisan-ui.php');
+        if (file_exists($configFile)) {
+            $this->info('Removing configuration file...');
+            unlink($configFile);
+            $this->info('Configuration file removed successfully.');
+        } else {
+            $this->info('No configuration file found.');
+        }
+
+        // Ask about removing database table
+        if ($this->confirm('Would you like to drop the Artisan UI database table?', false)) {
+            $this->info('Dropping Artisan UI database table...');
+            Schema::dropIfExists('artisan_ui_users');
+            Schema::dropIfExists('artisan_ui_logs');
+            $this->info('Database tables dropped successfully.');
+        }
+
+        $this->info('Artisan UI uninstalled successfully!');
 
         return 0;
     }

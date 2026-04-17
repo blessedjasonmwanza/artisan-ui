@@ -72,13 +72,11 @@ class ArtisanUiServiceProvider extends ServiceProvider
             // Key conditions to publish:
             // 1. Assets don't exist yet (fresh install)
             // 2. Version has changed (package updated)
-            // 3. Source files are newer than published files (unlikely but handle it)
             $currentVersion = file_exists($versionFile) ? trim(file_get_contents($versionFile)) : '';
             $versionChanged = $currentVersion !== self::VERSION;
             $assetsExists = file_exists($publicPath);
-            $sourceIsNewer = file_exists($sourcePath) && $assetsExists && filemtime($sourcePath) > filemtime($publicPath);
             
-            if (!$assetsExists || $versionChanged || $sourceIsNewer) {
+            if (!$assetsExists || $versionChanged) {
                 // Ensure directory exists
                 $assetDir = public_path('vendor/artisan-ui');
                 if (!is_dir($assetDir)) {
@@ -104,7 +102,7 @@ class ArtisanUiServiceProvider extends ServiceProvider
                 
                 Log::info('Artisan UI assets published', [
                     'version' => self::VERSION,
-                    'reason' => $versionChanged ? 'version-change' : ($assetsExists ? 'source-newer' : 'fresh-install')
+                    'reason' => $versionChanged ? 'version-change' : 'fresh-install'
                 ]);
             }
         } catch (Throwable $e) {
