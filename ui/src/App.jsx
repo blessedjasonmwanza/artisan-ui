@@ -1,79 +1,103 @@
-import React, { useEffect, useState } from 'react'
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import React, { useEffect, useState, useCallback } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { Flex, Box, Spinner, Callout } from '@radix-ui/themes'
 import { InfoCircledIcon } from '@radix-ui/react-icons'
 import api from './api'
 import ErrorBoundary from './components/ErrorBoundary'
 
-// Pages (to be created)
+// Pages
 import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
 import Setup from './pages/Setup'
 
+/**
+ * Auth state enum - backend tells frontend which page to render
+ * This is the single source of truth, preventing race conditions
+ */
+const AUTH_STATES = {
+  LOADING: 'loading',      // Initial state, waiting for backend response
+  SETUP: 'setup',          // No users in the system, setup is required
+  LOGIN: 'login',          // Users exist but current session is not authenticated
+  DASHBOARD: 'dashboard',  // User is authenticated and can access dashboard
+  ERROR: 'error'           // Failed to get auth state from backend
+}
+
 function App() {
+  // Single source of truth: the state from the backend
+  const [authState, setAuthState] = useState(AUTH_STATES.LOADING)
   const [user, setUser] = useState(null)
-  const [setupRequired, setSetupRequired] = useState(null)
-  const [initialized, setInitialized] = useState(false)
-  const [initError, setInitError] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const location = useLocation()
+  const [error, setError] = useState(null)
 
-  const checkSetupStatus = async () => {
+  /**
+   * Fetch the current authentication state from the backend
+   * The backend determines which page should be rendered
+   * This is called on mount and after login/logout/setup actions
+   */
+  const fetchAuthState = useCallback(async () => {
     try {
-      const setupResponse = await api.get('/setup-status')
-      const { setup_required, auth_disabled } = setupResponse?.data || {}
-      
-      setSetupRequired(!!setup_required)
-      
-      if (setup_required) {
-        setUser(null)
-        setInitialized(true)
-        setLoading(false)
-        return
-      }
-      
-      // If auth is disabled, skip user check and show dashboard
-      if (auth_disabled) {
-        setUser({ id: 1, name: 'Admin', email: 'admin@example.com' })
-        setInitialized(true)
-        setLoading(false)
-        return
+      setAuthState(AUTH_STATES.LOADING)
+      setError(null)
+
+      const response = await api.get('/auth-state')
+      const { state, user: userData, auth_disabled } = response?.data || {}
+
+      // Validate backend response
+      if (!state || !Object.values(AUTH_STATES).includes(state)) {
+        throw new Error('Invalid auth state from backend')
       }
 
-      // Setup is complete, check user
-      await checkUser()
-    } catch (error) {
-      console.error('[App] Setup status check failed:', error)
-      setInitError(true)
-      setInitialized(true)
-      setLoading(false)
+      // Update state based on backend response
+      setAuthState(state)
+      setUser(userData || null)
+
+    } catch (err) {
+      console.error('[App] Failed to fetch auth state:', err)
+      setAuthState(AUTH_STATES.ERROR)
+      setError(err?.response?.data?.message || err.message || 'Failed to connect to server')
+      setUser(null)
     }
-  }
+  }, [])
 
-  const checkUser = async () => {
-    try {
-      const response = await api.get('/user')
-      const userData = response?.data
-      if (userData && typeof userData === 'object') {
-        setUser(userData)
-      } else {
-        setUser(null)
-      }
-    } catch (error) {
-      if (error?.response?.status === 401 || error?.response?.status === 403) {
-        setUser(null)
-      }
-    } finally {
-      setInitialized(true)
-      setLoading(false)
-    }
-  }
+  /**
+   * Callback for when setup is completed successfully
+   * This refetches the auth state to determine next page (should be login)
+   */
+  const handleSetupComplete = useCallback(async () => {
+    await fetchAuthState()
+  }, [fetchAuthState])
 
+  /**
+   * Callback for when login is completed successfully
+   * This refetches the auth state to determine next page (should be dashboard)
+   */
+  const handleLoginComplete = useCallback(async () => {
+    await fetchAuthState()
+  }, [fetchAuthState])
+
+  /**
+   * Callback for when logout is triggered
+   * This refetches the auth state to determine next page (should be login)
+   */
+  const handleLogout = useCallback(async () => {
+    await fetchAuthState()
+  }, [fetchAuthState])
+
+  /**
+   * Fetch auth state on initial mount
+   * Only run once on mount, not on location changes
+   * The SPA router handles navigation client-side after initial load
+   */
   useEffect(() => {
-    checkSetupStatus()
-  }, [location.pathname])
+    fetchAuthState()
+  }, [])
 
-  if (!initialized || loading) {
+  /**
+   * Render logic based on auth state from backend
+   * This ensures the UI always renders what the backend says it should
+   */
+
+  // Loading state: show spinner while fetching auth state
+  if (authState === AUTH_STATES.LOADING) {
     return (
       <Flex align="center" justify="center" style={{ height: '100vh' }}>
         <Spinner size="3" />
@@ -81,42 +105,52 @@ function App() {
     )
   }
 
-  if (initError) {
+  // Error state: show error message
+  if (authState === AUTH_STATES.ERROR) {
     return (
       <Flex align="center" justify="center" style={{ height: '100vh' }}>
         <Callout.Root color="red">
           <Callout.Icon><InfoCircledIcon /></Callout.Icon>
           <Callout.Text>
-            Failed to connect to Artisan UI API. Please check your installation.
+            {error || 'Failed to connect to Artisan UI API. Please check your installation.'}
           </Callout.Text>
         </Callout.Root>
       </Flex>
     )
   }
 
+  // Render routes based on backend-determined state
+  // This prevents client-side redirect logic that can cause race conditions
   return (
     <ErrorBoundary>
       <Routes>
+        {/* Setup page: only shown when authState is SETUP */}
         <Route 
           path="/setup" 
           element={
-            setupRequired === false ? <Navigate to="/login" replace /> : 
-            <Setup onSetup={checkSetupStatus} />
+            authState === AUTH_STATES.SETUP 
+              ? <Setup onSetup={handleSetupComplete} />
+              : <Navigate to="/" replace />
           } 
         />
+
+        {/* Login page: only shown when authState is LOGIN */}
         <Route 
           path="/login" 
           element={
-            setupRequired === true ? <Navigate to="/setup" replace /> :
-            user ? <Navigate to="/" replace /> : 
-            <Login onLogin={checkSetupStatus} />
+            authState === AUTH_STATES.LOGIN 
+              ? <Login onLogin={handleLoginComplete} />
+              : <Navigate to="/" replace />
           } 
         />
+
+        {/* Dashboard and other pages: only shown when authState is DASHBOARD */}
         <Route 
           path="/*" 
           element={
-            setupRequired === true ? <Navigate to="/setup" replace /> : 
-            user ? <Dashboard user={user} /> : <Navigate to="/login" replace />
+            authState === AUTH_STATES.DASHBOARD 
+              ? <Dashboard user={user} onLogout={handleLogout} />
+              : <Navigate to="/" replace />
           } 
         />
       </Routes>

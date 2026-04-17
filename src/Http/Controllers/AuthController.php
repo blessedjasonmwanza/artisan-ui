@@ -74,6 +74,66 @@ class AuthController extends Controller
         return response()->json(ArtisanUiUser::find($userId));
     }
 
+    /**
+     * Get the current authentication state
+     * Backend tells frontend which page to render, preventing race conditions
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function authState()
+    {
+        if (!config('artisan-ui.auth.enabled')) {
+            return response()->json([
+                'state' => 'dashboard',
+                'user' => (object) ['id' => 1, 'name' => 'Admin', 'email' => 'admin@example.com'],
+                'auth_disabled' => true
+            ]);
+        }
+
+        $userCount = $this->artisanUiUserCount();
+
+        // If no users exist, setup is required
+        if ($userCount === 0) {
+            return response()->json([
+                'state' => 'setup',
+                'user' => null,
+                'auth_disabled' => false
+            ]);
+        }
+
+        // Users exist, check if current session is authenticated
+        $userId = Session::get('artisan_ui_user_id');
+        
+        if (!$userId) {
+            // No authenticated session
+            return response()->json([
+                'state' => 'login',
+                'user' => null,
+                'auth_disabled' => false
+            ]);
+        }
+
+        // Try to get authenticated user
+        $user = ArtisanUiUser::find($userId);
+
+        if (!$user) {
+            // User session is stale, clear it
+            Session::forget('artisan_ui_user_id');
+            return response()->json([
+                'state' => 'login',
+                'user' => null,
+                'auth_disabled' => false
+            ]);
+        }
+
+        // User is fully authenticated
+        return response()->json([
+            'state' => 'dashboard',
+            'user' => $user,
+            'auth_disabled' => false
+        ]);
+    }
+
     public function setupStatus()
     {
         if (!config('artisan-ui.auth.enabled')) {

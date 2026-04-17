@@ -7,7 +7,7 @@ import CommandSidebar from '../components/CommandSidebar'
 import CommandExecution from '../components/CommandExecution'
 import LogViewer from '../components/LogViewer'
 
-function Dashboard({ user }) {
+function Dashboard({ user, onLogout }) {
   const [commands, setCommands] = useState([])
   const [selectedCommand, setSelectedCommand] = useState(null)
   const [view, setView] = useState('execute') // 'execute' or 'logs'
@@ -46,11 +46,22 @@ function Dashboard({ user }) {
   const handleLogout = async () => {
     try {
       await api.post('/logout')
-      window.location.reload()
+      // Call the callback to refresh auth state in App component
+      // This will trigger redirect to login page via auth-state endpoint
+      if (onLogout) {
+        await onLogout()
+      } else {
+        // Fallback: reload page if callback not provided
+        window.location.reload()
+      }
     } catch (err) {
       console.error('[Dashboard] Logout error:', err)
-      // Force logout on error
-      window.location.reload()
+      // Force logout on error via callback
+      if (onLogout) {
+        await onLogout()
+      } else {
+        window.location.reload()
+      }
     }
   }
 

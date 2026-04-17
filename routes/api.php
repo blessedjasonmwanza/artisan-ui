@@ -11,6 +11,7 @@ Route::prefix(config('artisan-ui.path') . '/api')
     ->middleware(array_merge([EnsureSetupComplete::class], config('artisan-ui.middleware')))
     ->group(function () {
 
+        Route::get('/auth-state', [AuthController::class, 'authState'])->name('artisan-ui.api.auth-state');
         Route::get('/setup-status', [AuthController::class, 'setupStatus'])->name('artisan-ui.api.setup-status');
         Route::post('/setup', [AuthController::class, 'setup'])->name('artisan-ui.api.setup');
         Route::post('/login', [AuthController::class, 'login'])->name('artisan-ui.api.login');

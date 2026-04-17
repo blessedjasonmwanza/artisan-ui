@@ -28,11 +28,13 @@ class AuthenticateArtisanUi
             $request->routeIs('artisan-ui.api.login') ||
             $request->routeIs('artisan-ui.api.setup') ||
             $request->routeIs('artisan-ui.api.setup-status') ||
+            $request->routeIs('artisan-ui.api.auth-state') ||
             $request->is($path . '/login*') || 
             $request->is($path . '/setup*') || 
             $request->is($path . '/api/login*') || 
             $request->is($path . '/api/setup*') || 
-            $request->is($path . '/api/setup-status*')) {
+            $request->is($path . '/api/setup-status*') ||
+            $request->is($path . '/api/auth-state*')) {
             return $next($request);
         }
 
