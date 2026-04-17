@@ -11,11 +11,11 @@ Route::prefix(config('artisan-ui.path') . '/api')
     ->middleware(array_merge(config('artisan-ui.middleware'), [EnsureSetupComplete::class]))
     ->group(function () {
 
-        Route::get('/setup-status', [AuthController::class, 'setupStatus']);
-        Route::post('/setup', [AuthController::class, 'setup']);
-        Route::post('/login', [AuthController::class, 'login']);
-        Route::post('/logout', [AuthController::class, 'logout']);
-        Route::get('/user', [AuthController::class, 'user']);
+        Route::get('/setup-status', [AuthController::class, 'setupStatus'])->name('artisan-ui.api.setup-status');
+        Route::post('/setup', [AuthController::class, 'setup'])->name('artisan-ui.api.setup');
+        Route::post('/login', [AuthController::class, 'login'])->name('artisan-ui.api.login');
+        Route::post('/logout', [AuthController::class, 'logout'])->name('artisan-ui.api.logout');
+        Route::get('/user', [AuthController::class, 'user'])->name('artisan-ui.api.user');
 
         Route::middleware([AuthenticateArtisanUi::class])->group(function () {
             Route::get('/commands', [CommandController::class, 'index']);
