@@ -2,7 +2,7 @@
 
 Artisan UI is a production-grade Laravel package that provides a secure, modern web-based interface for your Artisan commands. No more typing in the terminal—manage your application through a beautiful graphical UI.
 
-![Artisan UI Preview](https://via.placeholder.com/1200x600?text=Artisan+UI+Modern+Dashboard)
+![Artisan UI Preview](./dashboard.png)
 
 ## Features
 
@@ -28,6 +28,11 @@ Getting started is simple. Artisan UI features **Zero-Config Installation**—it
 Run the following command in your terminal:
 ```bash
 composer require blessedjasonmwanza/artisan-ui
+```
+### 2. Publish Assets and Run migrations
+
+```bash
+php artisan artisan-ui:install
 ```
 
 ### 2. Access the Dashboard
