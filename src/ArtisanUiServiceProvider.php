@@ -121,8 +121,9 @@ class ArtisanUiServiceProvider extends ServiceProvider
     protected function registerRoutes()
     {
         Route::group([], function () {
-            $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
+            // Load API routes FIRST (before web routes) so specific routes match before catch-all
             $this->loadRoutesFrom(__DIR__ . '/../routes/api.php');
+            $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
         });
     }
 }
