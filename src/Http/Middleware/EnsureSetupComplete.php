@@ -22,6 +22,8 @@ class EnsureSetupComplete
      */
     public function handle(Request $request, Closure $next)
     {
+        $path = trim(config('artisan-ui.path', 'artisan-ui'), '/');
+
         // Ensure migrations are run on first access
         $this->ensureMigrationsRun();
 
@@ -32,7 +34,6 @@ class EnsureSetupComplete
 
         $tableExists = Schema::hasTable('artisan_ui_users');
         $hasUsers = $tableExists && DB::table('artisan_ui_users')->count() > 0;
-        $path = trim(config('artisan-ui.path', 'artisan-ui'), '/');
 
         // If setup is complete (users exist), prevent access to setup pages
         if ($hasUsers) {
