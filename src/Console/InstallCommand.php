@@ -53,8 +53,10 @@ class InstallCommand extends Command
             if (Schema::hasTable('artisan_ui_users')) {
                 $this->info('Artisan UI database table already exists. Skipping package migrations.');
             } else {
+                $migrationPath = realpath(__DIR__ . '/../../database/migrations');
                 $this->call('migrate', [
-                    '--path' => 'vendor/blessedjasonmwanza/artisan-ui/database/migrations',
+                    '--path' => $migrationPath,
+                    '--realpath' => true,
                     '--force' => true,
                 ]);
             }

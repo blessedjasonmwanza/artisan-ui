@@ -52,12 +52,19 @@ class EnsureSetupComplete
             if ($request->routeIs('artisan-ui.setup') || 
                 $request->routeIs('artisan-ui.api.setup') || 
                 $request->routeIs('artisan-ui.api.setup-status') ||
-                $request->is($path . '/setup') || 
-                $request->is($path . '/api/setup') || 
-                $request->is($path . '/api/setup-status') ||
-                $request->expectsJson()) {
+                $request->is($path . '/setup*') || 
+                $request->is($path . '/api/setup*') || 
+                $request->is($path . '/api/setup-status*')) {
                 return $next($request);
             }
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Setup not complete. Please visit the setup page.',
+                    'setup_required' => true
+                ], 403);
+            }
+
             return redirect()->route('artisan-ui.setup');
         }
     }
@@ -71,12 +78,15 @@ class EnsureSetupComplete
     {
         try {
             if (!Schema::hasTable('artisan_ui_users')) {
+                $migrationPath = realpath(__DIR__ . '/../../../database/migrations');
+                
                 Artisan::call('migrate', [
-                    '--path' => 'vendor/blessedjasonmwanza/artisan-ui/database/migrations',
+                    '--path' => $migrationPath,
+                    '--realpath' => true,
                     '--force' => true,
                 ]);
                 
-                Log::info('Artisan UI migrations executed automatically');
+                Log::info('Artisan UI migrations executed automatically', ['path' => $migrationPath]);
             }
         } catch (Throwable $e) {
             Log::warning('Artisan UI migrations failed', [
