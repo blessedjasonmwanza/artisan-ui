@@ -86,3 +86,5 @@ class AuthController extends Controller
 
         return response()->json(['setup_required' => !$userExists, 'user_exists' => $userExists]);
     }
+}
+
