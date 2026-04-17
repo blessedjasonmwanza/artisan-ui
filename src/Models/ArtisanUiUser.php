@@ -10,6 +10,14 @@ class ArtisanUiUser extends Authenticatable
 {
     use Notifiable;
 
+    /**
+     * Explicitly use the dedicated Artisan UI users table.
+     * This prevents collision with the application users table.
+     *
+     * @var string
+     */
+    protected $table = 'artisan_ui_users';
+
     protected $fillable = [
         'name',
         'email',
