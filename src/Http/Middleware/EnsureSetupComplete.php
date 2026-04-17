@@ -30,21 +30,32 @@ class EnsureSetupComplete
             return $next($request);
         }
 
-        // If auth is enabled, check if setup is complete
         $tableExists = Schema::hasTable('artisan_ui_users');
         $hasUsers = $tableExists && DB::table('artisan_ui_users')->count() > 0;
 
+        // If setup is complete (users exist), prevent access to setup pages
+        if ($hasUsers) {
+            if ($request->routeIs('artisan-ui.setup') || $request->is('artisan-ui/api/setup')) {
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => 'Setup already completed.'], 400);
+                }
+                return redirect()->route('artisan-ui.login');
+            }
+            return $next($request);
+        }
+
         // If setup is not complete (no table or no users), allow access to setup-related routes
         if (!$tableExists || !$hasUsers) {
-            // Allow setup page and all API routes
-            if ($request->routeIs('artisan-ui.setup') || $request->is('artisan-ui/api/*') || $request->expectsJson()) {
+            // Allow setup page and and critical initialization API routes
+            if ($request->routeIs('artisan-ui.setup') || 
+                $request->routeIs('artisan-ui.api.setup') || 
+                $request->routeIs('artisan-ui.api.setup-status') ||
+                $request->is('artisan-ui/api/*') || 
+                $request->expectsJson()) {
                 return $next($request);
             }
             return redirect()->route('artisan-ui.setup');
         }
-
-        // Setup is complete, allow access
-        return $next($request);
     }
 
     /**

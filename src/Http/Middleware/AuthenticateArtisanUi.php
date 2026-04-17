@@ -21,6 +21,15 @@ class AuthenticateArtisanUi
             return $next($request);
         }
 
+        // Allow setup and login routes without authentication
+        if ($request->routeIs('artisan-ui.login') || 
+            $request->routeIs('artisan-ui.setup') ||
+            $request->routeIs('artisan-ui.api.login') ||
+            $request->routeIs('artisan-ui.api.setup') ||
+            $request->routeIs('artisan-ui.api.setup-status')) {
+            return $next($request);
+        }
+
         if (!Session::has('artisan_ui_user_id')) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Unauthenticated.'], 401);

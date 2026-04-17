@@ -15,10 +15,6 @@ class AuthController extends Controller
 {
     public function setup(Request $request)
     {
-        if ($this->artisanUiUserCount() > 0) {
-            return redirect()->route('artisan-ui.login');
-        }
-
         if ($request->isMethod('get')) {
             return view('artisan-ui::app'); // React will handle the setup view
         }

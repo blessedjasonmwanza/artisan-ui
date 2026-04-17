@@ -5,7 +5,7 @@ use Blessedjasonmwanza\ArtisanUi\Http\Controllers\AuthController;
 use Blessedjasonmwanza\ArtisanUi\Http\Middleware\EnsureSetupComplete;
 
 Route::prefix(config('artisan-ui.path'))
-    ->middleware(array_merge(config('artisan-ui.middleware'), [EnsureSetupComplete::class]))
+    ->middleware(array_merge([EnsureSetupComplete::class], config('artisan-ui.middleware')))
     ->group(function () {
         Route::get('/setup', [AuthController::class, 'setup'])->name('artisan-ui.setup');
         Route::post('/setup', [AuthController::class, 'setup']);

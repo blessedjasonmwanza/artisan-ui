@@ -8,7 +8,7 @@ use Blessedjasonmwanza\ArtisanUi\Http\Middleware\AuthenticateArtisanUi;
 use Blessedjasonmwanza\ArtisanUi\Http\Middleware\EnsureSetupComplete;
 
 Route::prefix(config('artisan-ui.path') . '/api')
-    ->middleware(array_merge(config('artisan-ui.middleware'), [EnsureSetupComplete::class]))
+    ->middleware(array_merge([EnsureSetupComplete::class], config('artisan-ui.middleware')))
     ->group(function () {
 
         Route::get('/setup-status', [AuthController::class, 'setupStatus'])->name('artisan-ui.api.setup-status');
