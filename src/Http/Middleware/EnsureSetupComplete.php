@@ -5,6 +5,8 @@ namespace Blessedjasonmwanza\ArtisanUi\Http\Middleware;
 use Blessedjasonmwanza\ArtisanUi\Models\ArtisanUiUser;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class EnsureSetupComplete
 {
@@ -22,7 +24,7 @@ class EnsureSetupComplete
         }
 
         // If no user exists and we are not on the setup page, redirect to setup
-        if (ArtisanUiUser::count() === 0) {
+        if (!Schema::hasTable('artisan_ui_users') || DB::table('artisan_ui_users')->count() === 0) {
             if ($request->routeIs('artisan-ui.setup') || $request->expectsJson()) {
                 return $next($request);
             }

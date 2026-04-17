@@ -4,6 +4,7 @@ namespace Blessedjasonmwanza\ArtisanUi\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 
 class InstallCommand extends Command
 {
@@ -43,8 +44,16 @@ class InstallCommand extends Command
         ]);
 
         if ($this->confirm('Would you like to run the database migrations now?', true)) {
-            $this->info('Running migrations...');
-            $this->call('migrate');
+            $this->info('Running Artisan UI migrations...');
+
+            if (Schema::hasTable('artisan_ui_users')) {
+                $this->info('Artisan UI database table already exists. Skipping package migrations.');
+            } else {
+                $this->call('migrate', [
+                    '--path' => 'vendor/blessedjasonmwanza/artisan-ui/database/migrations',
+                    '--force' => true,
+                ]);
+            }
         }
 
         $this->info('Artisan UI installed successfully!');

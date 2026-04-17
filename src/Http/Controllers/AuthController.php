@@ -5,7 +5,9 @@ namespace Blessedjasonmwanza\ArtisanUi\Http\Controllers;
 use Blessedjasonmwanza\ArtisanUi\Models\ArtisanUiUser;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,7 +15,7 @@ class AuthController extends Controller
 {
     public function setup(Request $request)
     {
-        if (ArtisanUiUser::count() > 0) {
+        if ($this->artisanUiUserCount() > 0) {
             return redirect()->route('artisan-ui.login');
         }
 
@@ -82,9 +84,18 @@ class AuthController extends Controller
             return response()->json(['setup_required' => false, 'user_exists' => true]);
         }
 
-        $userExists = ArtisanUiUser::count() > 0;
+        $userExists = $this->artisanUiUserCount() > 0;
 
         return response()->json(['setup_required' => !$userExists, 'user_exists' => $userExists]);
+    }
+
+    protected function artisanUiUserCount(): int
+    {
+        if (!Schema::hasTable('artisan_ui_users')) {
+            return 0;
+        }
+
+        return DB::table('artisan_ui_users')->count();
     }
 }
 
